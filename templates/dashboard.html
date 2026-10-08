@@ -1,0 +1,1932 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="space-y-8">
+
+  <!-- ================= HERO SECTION (MATCHES USER ATTACHED SCREENSHOT) ================= -->
+  <div class="rounded-3xl p-6 sm:p-7 relative overflow-hidden bg-slate-900 border border-slate-800 shadow-xl">
+    
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+      
+      <!-- Left Side: Greeting, Subtitle & 3-Metric Cockpit -->
+      <div class="lg:col-span-7 space-y-4">
+        <div>
+          <h1 class="text-2xl sm:text-3xl font-heading font-extrabold text-white tracking-tight flex items-center space-x-2">
+            <span>Good day, {{ user.name }}</span>
+            <span class="text-2xl sm:text-3xl">🎓</span>
+          </h1>
+          <p class="text-xs text-slate-400 font-medium mt-1">
+            {{ user.college_name or 'Engineering College' }} • Financial Intelligence Platform
+          </p>
+        </div>
+
+        <!-- 3-Metric Cockpit Card (RUNWAY REMAINING | DAILY BURN RATE | SAFE DAILY SPEND) -->
+        <div class="bg-slate-950 border border-slate-800 rounded-2xl p-3.5 sm:p-4 inline-flex flex-wrap sm:flex-nowrap items-center gap-4 sm:gap-6 shadow-sm">
+          
+          <!-- Metric 1: Runway Remaining -->
+          <div class="min-w-[100px]">
+            <span class="text-[10px] font-bold text-slate-400 tracking-wider uppercase block">RUNWAY REMAINING</span>
+            <span class="text-xl sm:text-2xl font-heading font-bold text-sky-400 block mt-0.5">
+              {{ cockpit.runway_days }} Days
+            </span>
+          </div>
+
+          <div class="hidden sm:block w-px h-10 bg-slate-800"></div>
+
+          <!-- Metric 2: Daily Burn Rate -->
+          <div class="min-w-[130px]">
+            <span class="text-[10px] font-bold text-slate-400 tracking-wider uppercase block">DAILY BURN RATE</span>
+            <span class="text-xl sm:text-2xl font-mono font-bold text-slate-200 block mt-0.5">
+              ₹{{ "{:,.2f}".format(cockpit.daily_burn_rate) }}<span class="text-xs font-sans text-slate-400 font-normal">/day</span>
+            </span>
+          </div>
+
+          <div class="hidden sm:block w-px h-10 bg-slate-800"></div>
+
+          <!-- Metric 3: Safe Daily Spend -->
+          <div class="min-w-[130px]">
+            <span class="text-[10px] font-bold text-slate-400 tracking-wider uppercase block">SAFE DAILY SPEND</span>
+            <span class="text-xl sm:text-2xl font-mono font-bold text-emerald-400 block mt-0.5">
+              ₹{{ "{:,.1f}".format(cockpit.safe_daily_spend) }}<span class="text-xs font-sans text-slate-400 font-normal">/day</span>
+            </span>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Right Side: Financial Health Score Box & Runway Advisory Banner -->
+      <div class="lg:col-span-5 bg-slate-950 border border-slate-800 rounded-2xl p-5 shadow-sm flex flex-col justify-between">
+        
+        <!-- Score Header Row -->
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block"></span>
+            <span class="text-xs font-medium text-slate-200">Financial Health Score</span>
+          </div>
+          <div class="text-2xl sm:text-3xl font-heading font-extrabold text-white tracking-tight">
+            {{ health.score }}<span class="text-sm font-normal text-slate-400 font-sans">/100</span>
+          </div>
+        </div>
+
+        <!-- Smooth Progress Bar -->
+        <div class="w-full bg-slate-900 rounded-full h-2 overflow-hidden my-3.5">
+          <div class="h-2 rounded-full transition-all duration-1000
+            {% if health.score >= 75 %}bg-emerald-400
+            {% elif health.score >= 50 %}bg-amber-400
+            {% else %}bg-rose-500{% endif %}"
+            style="width: {{ health.score }}%"></div>
+        </div>
+
+        <!-- Financial Health Advisory Sub-Box -->
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs text-slate-300 leading-relaxed flex flex-col space-y-1.5">
+          <p class="leading-relaxed">
+            <span class="font-bold text-indigo-400">Runway Advisory:</span>
+            <span>{{ cockpit.coach_message }}</span>
+          </p>
+          <a href="/chat" class="text-[11px] font-semibold text-indigo-400 hover:text-indigo-300 flex items-center space-x-1 self-start">
+            <span>Ask AI Assistant (Autonomous SFI Backend)</span>
+            <span>➔</span>
+          </a>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Autonomous AI Assistant Spotlight Banner -->
+  <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
+    <div class="flex items-center space-x-3">
+      <div class="w-9 h-9 rounded-lg bg-indigo-600/15 border border-indigo-500/20 text-indigo-400 flex items-center justify-center text-lg shrink-0 font-bold">
+        🤖
+      </div>
+      <div>
+        <div class="flex items-center space-x-2">
+          <h3 class="text-sm font-bold text-white">SpendWise AI Financial Assistant</h3>
+          <span class="px-1.5 py-0.5 text-[9px] font-semibold bg-indigo-500/15 text-indigo-300 rounded border border-indigo-500/20">Self-Updating Memory</span>
+        </div>
+        <p class="text-xs text-slate-400 mt-0.5">Autonomous SFI telemetry in the backend: live burn velocity, weekend surge radar, runway depletion date & memory adaptation.</p>
+      </div>
+    </div>
+    <div class="flex items-center space-x-2 shrink-0">
+      <a href="/chat" class="px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-sm transition flex items-center space-x-1">
+        <span>Launch AI Chat</span>
+        <span>➔</span>
+      </a>
+    </div>
+  </div>
+
+
+  <!-- ================= TOP KPI SUMMARY CARDS ================= -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    
+    <!-- KPI 1: Net Balance -->
+    <div class="glass-card rounded-2xl p-5 relative overflow-hidden group hover:border-indigo-500/40 transition">
+      <div class="flex items-center justify-between text-slate-400 text-xs font-semibold mb-2">
+        <span>NET RUNWAY BALANCE</span>
+        <span class="text-base">💳</span>
+      </div>
+      <div class="text-2xl sm:text-3xl font-heading font-bold text-white tracking-tight">
+        ₹{{ "{:,.2f}".format(balance) }}
+      </div>
+      <div class="mt-2 flex items-center space-x-1.5 text-xs">
+        {% if balance >= 0 %}
+          <span class="text-emerald-500 font-semibold flex items-center">
+            <svg class="w-3.5 h-3.5 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
+            +₹{{ "{:,.2f}".format(balance) }}
+          </span>
+          <span class="text-slate-400">surplus this month</span>
+        {% else %}
+          <span class="text-rose-500 font-semibold flex items-center">
+            <svg class="w-3.5 h-3.5 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
+            -₹{{ "{:,.2f}".format(balance|abs) }}
+          </span>
+          <span class="text-slate-400">deficit warning</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- KPI 2: Total Monthly Inflow -->
+    <div class="glass-card rounded-2xl p-5 relative overflow-hidden group hover:border-emerald-500/40 transition">
+      <div class="flex items-center justify-between text-slate-400 text-xs font-semibold mb-2">
+        <span>MONTHLY INFLOW</span>
+        <span class="text-base">💰</span>
+      </div>
+      <div class="text-2xl sm:text-3xl font-heading font-bold text-white tracking-tight">
+        ₹{{ "{:,.2f}".format(income) }}
+      </div>
+      <div class="mt-2 text-xs text-slate-400">
+        <span class="text-indigo-400 font-mono">₹{{ "{:,.0f}".format(base_income) }} stipend</span> +
+        <span class="text-emerald-500 font-mono">₹{{ "{:,.2f}".format(added_income) }} added</span>
+      </div>
+    </div>
+
+    <!-- KPI 3: Monthly Expenses / Burn -->
+    <div class="glass-card rounded-2xl p-5 relative overflow-hidden group hover:border-rose-500/40 transition">
+      <div class="flex items-center justify-between text-slate-400 text-xs font-semibold mb-2">
+        <span>MONTHLY OUTFLOW</span>
+        <span class="text-base">📉</span>
+      </div>
+      <div class="text-2xl sm:text-3xl font-heading font-bold text-white tracking-tight">
+        ₹{{ "{:,.2f}".format(expenses) }}
+      </div>
+      <div class="mt-2 text-xs text-slate-400">
+        <span class="text-amber-400 font-semibold">{{ health.spending_ratio_pct }}%</span> of monthly income burned
+      </div>
+    </div>
+
+    <!-- KPI 4: Digital Piggy Bank Vault -->
+    <div class="glass-card rounded-2xl p-5 relative overflow-hidden border-pink-500/30 group hover:border-pink-500/60 transition">
+      <div class="flex items-center justify-between text-pink-400 dark:text-pink-300 text-xs font-semibold mb-2">
+        <span>🐷 PIGGY BANK VAULT</span>
+        <button onclick="openModal('piggyModal')" class="text-xs px-2 py-0.5 rounded bg-pink-500/10 hover:bg-pink-500/20 text-pink-500 dark:text-pink-300 border border-pink-500/30 transition">
+          + Feed
+        </button>
+      </div>
+      <div class="text-2xl sm:text-3xl font-heading font-bold text-pink-500 dark:text-pink-200 tracking-tight">
+        ₹{{ "{:,.2f}".format(piggy_balance) }}
+      </div>
+      <div class="mt-2 text-xs text-slate-400 flex items-center justify-between">
+        <span>🪙 ₹{{ "{:,.2f}".format(total_roundups) }} round-ups</span>
+        <button onclick="openModal('piggyWithdrawModal')" class="text-[11px] text-pink-500 dark:text-pink-400 hover:underline">Withdraw</button>
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- ================= 🤝 CAMPUS BILL SPLITTER ================= -->
+  <div class="glass-card rounded-2xl p-6">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+      <div>
+        <div class="flex items-center space-x-2">
+          <span class="text-xl">🤝</span>
+          <h2 class="text-lg font-heading font-bold text-white">SpendWise Campus Bill Splitter</h2>
+          <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-500/10 text-indigo-500 dark:text-indigo-300 border border-indigo-500/20">Hostel & Flatmates</span>
+        </div>
+        <p class="text-xs text-slate-400 mt-0.5">Split Swiggy orders, rent, and cab fares equally or custom with instant UPI settlement</p>
+      </div>
+      <div class="flex items-center space-x-2.5">
+        <button onclick="openModal('billSplitModal')" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold transition shadow-md shadow-emerald-600/20 flex items-center space-x-1.5">
+          <span>+</span>
+          <span>New Bill Split</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Settlement Balance Pills -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+      <div class="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-between text-xs">
+        <div class="flex items-center space-x-2">
+          <span class="text-lg">📥</span>
+          <span class="text-slate-300 font-semibold">Friends Owe You:</span>
+        </div>
+        <span class="font-mono font-bold text-emerald-400 text-sm">₹{{ "{:,.2f}".format(total_owed_to_me) }}</span>
+      </div>
+      <div class="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-between text-xs">
+        <div class="flex items-center space-x-2">
+          <span class="text-lg">📤</span>
+          <span class="text-slate-300 font-semibold">You Owe Others:</span>
+        </div>
+        <span class="font-mono font-bold text-amber-400 text-sm">₹{{ "{:,.2f}".format(total_i_owe) }}</span>
+      </div>
+    </div>
+
+    <!-- Bill Splits List -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {% for s in bill_splits %}
+        <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col justify-between {% if s.settled %}opacity-60{% endif %}">
+          <div>
+            <div class="flex items-start justify-between mb-2">
+              <div>
+                <h4 class="text-sm font-bold text-white leading-snug">{{ s.title }}</h4>
+                <span class="text-[10px] text-slate-400 font-mono">Created: {{ s.formatted_date }} • Paid by: <strong class="text-indigo-400">{{ s.paid_by }}</strong></span>
+              </div>
+              {% if s.settled %}
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Settled ✓</span>
+              {% else %}
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30">Pending</span>
+              {% endif %}
+            </div>
+
+            <div class="my-2.5 p-2.5 rounded-lg bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs">
+              <div class="flex justify-between text-slate-400 mb-1">
+                <span>Total Bill ({{ s.split_count }} people):</span>
+                <span class="font-mono font-bold text-white">₹{{ "{:,.2f}".format(s.total_amount) }}</span>
+              </div>
+              <div class="flex justify-between font-semibold">
+                <span class="text-indigo-400">Your Personal Share:</span>
+                <span class="font-mono text-emerald-400">₹{{ "{:,.2f}".format(s.my_share) }}</span>
+              </div>
+              <div class="mt-2 text-[11px] text-slate-400 border-t border-slate-800/60 pt-1.5 truncate">
+                👥 {{ s.friends }}
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-2 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2 text-xs">
+            {% if not s.settled %}
+              <div class="flex items-center space-x-2 flex-1">
+                <form action="/bill-split/{{ s.id }}/settle" method="POST" class="inline">
+                  <button type="submit" class="px-3 py-1 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 font-semibold transition">
+                    Mark Settled
+                  </button>
+                </form>
+                <!-- Quick UPI link for friends -->
+                <a href="upi://pay?pa={{ user.name|lower }}@upi&pn={{ user.name }}&am={{ s.my_share }}&cu=INR&tn={{ s.title }}"
+                   class="px-2.5 py-1 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 font-semibold transition flex items-center space-x-1" title="Open UPI App (GPay, PhonePe, Paytm)">
+                  <span>📱</span>
+                  <span>UPI Pay</span>
+                </a>
+                <!-- Quick WhatsApp Settlement Link -->
+                <a href="https://wa.me/?text=Hey!%20Your%20share%20for%20{{ s.title }}%20is%20₹{{ s.my_share }}.%20Please%20settle%20via%20UPI:%20upi://pay?pa={{ user.name|lower }}@upi%26pn={{ user.name }}%26am={{ s.my_share }}%26cu=INR"
+                   target="_blank"
+                   class="px-2.5 py-1 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 font-semibold transition flex items-center space-x-1" title="Send WhatsApp Reminder with pre-filled UPI link">
+                  <span>💬</span>
+                  <span>WhatsApp</span>
+                </a>
+              </div>
+            {% else %}
+              <span class="text-[11px] text-slate-500 italic">Fully reconciled</span>
+            {% endif %}
+
+            <form action="/bill-split/{{ s.id }}/delete" method="POST" onsubmit="return confirm('Remove this bill split record?');">
+              <button type="submit" class="p-1 text-slate-400 hover:text-rose-400 transition" title="Delete Split">🗑️</button>
+            </form>
+          </div>
+        </div>
+      {% else %}
+        <div class="col-span-2 text-center py-8 border border-dashed border-slate-800 rounded-xl">
+          <p class="text-xs text-slate-400">No active bill splits yet. Click "+ New Bill Split" to split a meal or cab fare!</p>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+
+  <!-- ================= 🚌 RECURRING PAYMENTS & TRANSIT PASSES ================= -->
+  <div id="recurring-section" class="glass-card rounded-2xl p-6 relative overflow-hidden">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+      <div>
+        <div class="flex items-center space-x-2">
+          <span class="text-xl">🚌</span>
+          <h2 class="text-lg font-heading font-bold text-white flex items-center space-x-2">
+            <span>Recurring Transit & Campus Subscriptions (₹ INR)</span>
+          </h2>
+          <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Auto-Pass</span>
+        </div>
+        <p class="text-xs text-slate-400 mt-1">Automated tracking and 1-click renewals for Metro, Bus passes, Mess, & Campus essentials</p>
+      </div>
+
+      <div class="flex items-center space-x-2">
+        <button onclick="openModal('recurringModal')" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition shadow-sm flex items-center space-x-1.5 shrink-0">
+          <span>+</span>
+          <span>Add Recurring Commitment</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- KPI Metrics Strip -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3.5 mb-6">
+      <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800">
+        <div class="text-[11px] font-medium text-slate-400">Total Committed</div>
+        <div class="text-base sm:text-lg font-bold text-white font-mono mt-0.5">₹{{ "{:,.2f}".format(recurring_metrics.total_monthly) }} <span class="text-[10px] font-normal text-slate-400">/ mo</span></div>
+      </div>
+      <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800">
+        <div class="text-[11px] font-medium text-slate-400">Metro & Bus Commute</div>
+        <div class="text-base sm:text-lg font-bold text-indigo-400 font-mono mt-0.5">₹{{ "{:,.2f}".format(recurring_metrics.transit_monthly) }} <span class="text-[10px] font-normal text-slate-400">/ mo</span></div>
+      </div>
+      <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800">
+        <div class="text-[11px] font-medium text-slate-400">Due in 7 Days</div>
+        <div class="text-base sm:text-lg font-bold {% if recurring_metrics.upcoming_7d_count > 0 %}text-amber-400{% else %}text-emerald-400{% endif %} mt-0.5">
+          {{ recurring_metrics.upcoming_7d_count }} Upcoming
+        </div>
+      </div>
+      <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800">
+        <div class="text-[11px] font-medium text-slate-400">Active Commitments</div>
+        <div class="text-base sm:text-lg font-bold text-slate-200 mt-0.5">
+          {{ recurring_metrics.active_count }} Active
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Presets Bar -->
+    <div class="mb-6 p-3 rounded-xl bg-slate-900/40 border border-slate-800/80 flex flex-wrap items-center gap-2">
+      <span class="text-[11px] font-semibold text-slate-400 shrink-0 mr-1">⚡ Quick 1-Click Presets:</span>
+      <form action="/recurring-payments/quick-add" method="POST" class="inline">
+        <input type="hidden" name="preset" value="metro">
+        <button type="submit" class="px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-indigo-300 border border-slate-700 transition flex items-center space-x-1">
+          <span>🚇</span>
+          <span>+ Metro Smartcard (₹800/mo)</span>
+        </button>
+      </form>
+      <form action="/recurring-payments/quick-add" method="POST" class="inline">
+        <input type="hidden" name="preset" value="bus">
+        <button type="submit" class="px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-sky-300 border border-slate-700 transition flex items-center space-x-1">
+          <span>🚌</span>
+          <span>+ Bus Pass (₹450/mo)</span>
+        </button>
+      </form>
+      <form action="/recurring-payments/quick-add" method="POST" class="inline">
+        <input type="hidden" name="preset" value="5g">
+        <button type="submit" class="px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-emerald-300 border border-slate-700 transition flex items-center space-x-1">
+          <span>📱</span>
+          <span>+ Jio 5G Pack (₹299/mo)</span>
+        </button>
+      </form>
+      <form action="/recurring-payments/quick-add" method="POST" class="inline">
+        <input type="hidden" name="preset" value="mess">
+        <button type="submit" class="px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 transition flex items-center space-x-1">
+          <span>🍛</span>
+          <span>+ Mess Dues (₹3,200/mo)</span>
+        </button>
+      </form>
+      <form action="/recurring-payments/quick-add" method="POST" class="inline">
+        <input type="hidden" name="preset" value="spotify">
+        <button type="submit" class="px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-pink-300 border border-slate-700 transition flex items-center space-x-1">
+          <span>🎧</span>
+          <span>+ Spotify Student (₹69/mo)</span>
+        </button>
+      </form>
+    </div>
+
+    <!-- Category Filter Tabs -->
+    <div class="flex items-center space-x-2 overflow-x-auto pb-2 mb-4 text-xs font-medium no-scrollbar">
+      <button onclick="filterRecurring('all', this)" class="rec-filter-btn px-3 py-1.5 rounded-lg bg-indigo-600 text-white transition">
+        All ({{ recurring_payments|length }})
+      </button>
+      <button onclick="filterRecurring('Transport', this)" class="rec-filter-btn px-3 py-1.5 rounded-lg bg-slate-800/60 hover:bg-slate-800 text-slate-400 hover:text-white transition">
+        🚇 Transit & Passes
+      </button>
+      <button onclick="filterRecurring('Bills', this)" class="rec-filter-btn px-3 py-1.5 rounded-lg bg-slate-800/60 hover:bg-slate-800 text-slate-400 hover:text-white transition">
+        ⚡ Utilities & 5G
+      </button>
+      <button onclick="filterRecurring('Food', this)" class="rec-filter-btn px-3 py-1.5 rounded-lg bg-slate-800/60 hover:bg-slate-800 text-slate-400 hover:text-white transition">
+        🍛 Mess & Food
+      </button>
+      <button onclick="filterRecurring('Entertainment', this)" class="rec-filter-btn px-3 py-1.5 rounded-lg bg-slate-800/60 hover:bg-slate-800 text-slate-400 hover:text-white transition">
+        🎧 Subscriptions
+      </button>
+    </div>
+
+    <!-- Cards Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {% for r in recurring_payments %}
+        <div class="recurring-item-card p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-slate-700 transition flex flex-col justify-between"
+             data-cat="{{ r.category }}">
+          <div>
+            <!-- Top row: Category tag & Urgency badge -->
+            <div class="flex items-center justify-between mb-2">
+              <span class="inline-flex items-center space-x-1 px-2 py-0.5 text-[10px] font-semibold rounded-md bg-slate-800 text-slate-300 border border-slate-700/60">
+                <span>{{ r.meta.icon }}</span>
+                <span>{{ r.category }}</span>
+              </span>
+              <div class="flex items-center space-x-1.5">
+                {% if r.status == 'Paused' %}
+                  <span class="px-2 py-0.5 text-[10px] font-semibold rounded-md bg-slate-700/60 text-slate-400 border border-slate-600/40">Paused</span>
+                {% else %}
+                  <span class="px-2 py-0.5 text-[10px] font-semibold rounded-md border {{ r.due_status.badge_class }}">
+                    {{ r.due_status.label }}
+                  </span>
+                {% endif %}
+              </div>
+            </div>
+
+            <!-- Title & Notes -->
+            <h4 class="text-sm font-semibold text-white tracking-tight">{{ r.title }}</h4>
+            {% if r.notes %}
+              <p class="text-[11px] text-slate-400 mt-0.5 line-clamp-1">📍 {{ r.notes }}</p>
+            {% endif %}
+
+            <!-- Amount & Frequency -->
+            <div class="mt-3 flex items-baseline justify-between">
+              <div>
+                <span class="text-lg font-bold font-mono text-white">₹{{ "{:,.2f}".format(r.amount_dec) }}</span>
+                <span class="text-xs text-slate-400 font-normal">/ {{ r.frequency|lower }}</span>
+              </div>
+              <span class="text-[10px] text-slate-400 font-mono bg-slate-800/40 px-2 py-0.5 rounded border border-slate-700/40">
+                {{ r.payment_method }}
+              </span>
+            </div>
+
+            <!-- Due Date info -->
+            <div class="mt-2.5 pt-2 border-t border-slate-200 dark:border-slate-800/60 flex items-center justify-between text-[11px] text-slate-400">
+              <span>Next Renewal:</span>
+              <span class="font-mono text-slate-300 font-medium">{{ r.formatted_due_date }}</span>
+            </div>
+
+            {% if r.auto_roundup %}
+              <div class="mt-1 flex items-center space-x-1 text-[10px] text-pink-400 font-medium">
+                <span>🪙</span>
+                <span>Auto-Roundup to Piggy Bank active</span>
+              </div>
+            {% endif %}
+          </div>
+
+          <!-- Actions Bar -->
+          <div class="mt-4 pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-1.5">
+            <div class="flex items-center space-x-1.5 flex-1">
+              <!-- 1-Click Pay & Log -->
+              <form action="/recurring-payments/{{ r.id }}/pay" method="POST" class="inline">
+                <button type="submit" class="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition shadow-xs flex items-center space-x-1" title="Instantly log payment into transactions ledger and advance next renewal date">
+                  <span>⚡</span>
+                  <span>Pay & Log</span>
+                </button>
+              </form>
+
+              <!-- UPI Deep Link -->
+              <a href="upi://pay?pa={{ user.name|lower|replace(' ', '') }}@upi&pn={{ user.name }}&am={{ r.amount }}&cu=INR&tn={{ r.title|urlencode }}"
+                 class="px-2 py-1 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 text-xs font-semibold transition" title="Open UPI App">
+                📱 UPI
+              </a>
+
+              <!-- QR Code Modal Button -->
+              <button onclick="showRecurringQr('{{ r.title }}', '{{ r.amount }}')"
+                      class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs font-semibold transition" title="Show Scan & Pay QR">
+                🔲 QR
+              </button>
+            </div>
+
+            <div class="flex items-center space-x-1">
+              <!-- Pause / Resume -->
+              <form action="/recurring-payments/{{ r.id }}/toggle" method="POST" class="inline">
+                <button type="submit" class="p-1 rounded text-slate-400 hover:text-white transition" title="{% if r.status == 'Active' %}Pause recurring payment{% else %}Resume recurring payment{% endif %}">
+                  {% if r.status == 'Active' %}⏸{% else %}▶{% endif %}
+                </button>
+              </form>
+
+              <!-- Delete -->
+              <form action="/recurring-payments/{{ r.id }}/delete" method="POST" class="inline" onsubmit="return confirm('Remove recurring payment for {{ r.title }}?');">
+                <button type="submit" class="p-1 rounded text-slate-400 hover:text-rose-400 transition" title="Delete payment">
+                  🗑️
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      {% else %}
+        <div class="col-span-3 text-center py-10 border border-dashed border-slate-800 rounded-2xl">
+          <span class="text-3xl mb-2 block">🚌</span>
+          <p class="text-sm font-semibold text-slate-300">No recurring transit or subscription payments tracked yet</p>
+          <p class="text-xs text-slate-500 mt-1 max-w-md mx-auto">Use the quick presets above to add your Metro Smartcard, City Bus Pass, or Campus Mess dues in 1 click!</p>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+
+  <!-- ================= DIGITAL PIGGY BANK (SAVINGS VAULT) ================= -->
+  <div class="glass-card rounded-2xl p-6 relative overflow-hidden">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+      
+      <!-- Animated Piggy Graphic (4 cols) -->
+      <div class="lg:col-span-4 flex flex-col items-center justify-center text-center p-4 bg-slate-50 dark:bg-slate-950/40 rounded-2xl border border-slate-200 dark:border-pink-500/20">
+        <div id="piggyContainer" class="piggy-bounce cursor-pointer relative" onclick="triggerPiggyOink()" title="Click to feed piggy bank!">
+          <div id="coinParticle" class="hidden absolute -top-8 left-1/2 -translate-x-1/2 text-2xl animate-coin z-10">🪙</div>
+          <svg class="w-32 h-32 drop-shadow-lg" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="105" cy="115" rx="70" ry="55" fill="#f472b6"/>
+            <ellipse cx="45" cy="115" rx="20" ry="16" fill="#ec4899"/>
+            <circle cx="40" cy="113" r="4" fill="#831843"/>
+            <circle cx="50" cy="113" r="4" fill="#831843"/>
+            <circle cx="75" cy="92" r="7" fill="#1e293b"/>
+            <circle cx="77" cy="90" r="2.5" fill="white"/>
+            <path d="M78 68 C70 45 92 42 98 62 Z" fill="#ec4899"/>
+            <path d="M82 66 C77 52 90 50 94 63 Z" fill="#f9a8d4"/>
+            <path d="M175 110 C190 100 195 125 185 130" stroke="#ec4899" stroke-width="6" stroke-linecap="round" fill="none"/>
+            <rect x="70" y="155" width="16" height="25" rx="8" fill="#ec4899"/>
+            <rect x="130" y="155" width="16" height="25" rx="8" fill="#ec4899"/>
+            <rect x="95" y="60" width="30" height="6" rx="3" fill="#831843"/>
+            <circle cx="120" cy="115" r="16" fill="#fbbf24"/>
+            <text x="120" y="121" font-size="16" font-weight="bold" fill="#78350f" text-anchor="middle" font-family="sans-serif">₹</text>
+          </svg>
+        </div>
+        
+        <div class="mt-3">
+          <div class="text-xs text-pink-500 dark:text-pink-300 font-semibold tracking-wide uppercase">Digital Piggy Vault</div>
+          <div class="text-2xl font-heading font-extrabold text-white tracking-tight">₹{{ "{:,.2f}".format(piggy_balance) }}</div>
+          <p class="text-[11px] text-slate-400 mt-0.5">Automated UPI micro round-ups + habit stashes</p>
+        </div>
+      </div>
+
+      <!-- Piggy Mechanics & Quick Stash (8 cols) -->
+      <div class="lg:col-span-8 space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <h3 class="text-base font-heading font-bold text-white flex items-center space-x-2">
+              <span>🪙</span>
+              <span>Micro-Savings & Instant Stash (₹ INR)</span>
+            </h3>
+            <p class="text-xs text-slate-400">Non-round expenses auto round-up to next ₹10 to painlessly build savings.</p>
+          </div>
+          <div class="flex items-center space-x-2">
+            <button onclick="openModal('piggyModal')" class="px-3 py-1.5 rounded-xl bg-pink-600 hover:bg-pink-500 text-white text-xs font-semibold transition shadow-md shadow-pink-600/25">
+              Deposit Custom
+            </button>
+            <button onclick="openModal('piggyWithdrawModal')" class="px-3 py-1.5 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold border border-slate-300 dark:border-slate-700 transition">
+              Withdraw
+            </button>
+          </div>
+        </div>
+
+        <!-- Quick Feed Buttons in INR -->
+        <div>
+          <span class="text-xs text-slate-400 font-semibold block mb-2">⚡ 1-Click Habit Stash (bypass an impulse expense):</span>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            <form action="/piggy/deposit" method="POST">
+              <input type="hidden" name="amount" value="20.00">
+              <input type="hidden" name="description" value="Skipped Tapri Chai & Snack">
+              <button type="submit" class="w-full p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 hover:border-pink-500/40 border border-slate-200 dark:border-slate-700/80 text-left transition group">
+                <div class="text-xs font-bold text-white group-hover:text-pink-400">+ ₹20.00</div>
+                <div class="text-[10px] text-slate-400">☕ Skip Tapri Chai</div>
+              </button>
+            </form>
+            <form action="/piggy/deposit" method="POST">
+              <input type="hidden" name="amount" value="50.00">
+              <input type="hidden" name="description" value="Skipped Swiggy Delivery Snack">
+              <button type="submit" class="w-full p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 hover:border-pink-500/40 border border-slate-200 dark:border-slate-700/80 text-left transition group">
+                <div class="text-xs font-bold text-white group-hover:text-pink-400">+ ₹50.00</div>
+                <div class="text-[10px] text-slate-400">🍔 Skip Swiggy Snack</div>
+              </button>
+            </form>
+            <form action="/piggy/deposit" method="POST">
+              <input type="hidden" name="amount" value="150.00">
+              <input type="hidden" name="description" value="Cooked at PG / Hostel Meal">
+              <button type="submit" class="w-full p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 hover:border-pink-500/40 border border-slate-200 dark:border-slate-700/80 text-left transition group">
+                <div class="text-xs font-bold text-white group-hover:text-pink-400">+ ₹150.00</div>
+                <div class="text-[10px] text-slate-400">🍛 Cooked at PG</div>
+              </button>
+            </form>
+            <form action="/piggy/deposit" method="POST">
+              <input type="hidden" name="amount" value="500.00">
+              <input type="hidden" name="description" value="Hackathon Award Stash">
+              <button type="submit" class="w-full p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 hover:border-pink-500/40 border border-slate-200 dark:border-slate-700/80 text-left transition group">
+                <div class="text-xs font-bold text-white group-hover:text-pink-400">+ ₹500.00</div>
+                <div class="text-[10px] text-slate-400">🏆 Hackathon Win</div>
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Recent Piggy Ledger with DD-MM-YYYY dates -->
+        <div class="bg-slate-50 dark:bg-slate-950/50 rounded-xl p-3 border border-slate-200 dark:border-slate-800">
+          <div class="flex items-center justify-between text-[11px] text-slate-400 font-semibold mb-2">
+            <span>RECENT VAULT ACTIVITY</span>
+            <span>Auto-saved Round-ups</span>
+          </div>
+          <div class="space-y-1.5">
+            {% for p in piggy_history %}
+              <div class="flex items-center justify-between text-xs py-1 border-b border-slate-200 dark:border-slate-800/60 last:border-0">
+                <div class="flex items-center space-x-2">
+                  <span>{% if p.action_type == 'roundup' %}🪙{% elif p.action_type == 'deposit' %}📥{% else %}📤{% endif %}</span>
+                  <span class="text-slate-700 dark:text-slate-300 truncate max-w-[240px]">{{ p.description }}</span>
+                  <span class="text-[10px] text-slate-400 font-mono">({{ p.formatted_date }})</span>
+                </div>
+                <div class="font-mono font-semibold {% if p.action_type in ('deposit', 'roundup') %}text-pink-500 dark:text-pink-400{% else %}text-amber-500{% endif %}">
+                  {% if p.action_type in ('deposit', 'roundup') %}+{% else %}-{% endif %}₹{{ "{:,.2f}".format(p.amount) }}
+                </div>
+              </div>
+            {% else %}
+              <p class="text-xs text-slate-500 py-1">No vault activity yet. Stash ₹20 to kickstart your savings!</p>
+            {% endfor %}
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ================= 🎓 CURATED STUDENT PERKS & OFFERS RADAR ================= -->
+  <div id="studentOffersSection" class="glass-card rounded-2xl p-6">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+      <div>
+        <div class="flex items-center space-x-2">
+          <span class="text-xl">🎓</span>
+          <h2 class="text-lg font-heading font-bold text-white">Curated Student Deals & Perks Radar (India)</h2>
+          <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">Verified Discounts</span>
+        </div>
+        <p class="text-xs text-slate-400 mt-0.5">Save ₹30,000+ per year by leveraging official student programs using your college ID</p>
+      </div>
+      
+      <!-- Filter Tabs -->
+      <div class="flex flex-wrap gap-1.5">
+        <button onclick="filterOffers('all')" class="offer-tab px-3 py-1 rounded-lg text-xs font-semibold bg-indigo-600 text-white transition active-tab">All Deals</button>
+        <button onclick="filterOffers('Tech & Coding')" class="offer-tab px-3 py-1 rounded-lg text-xs font-semibold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-white transition">Tech & Dev</button>
+        <button onclick="filterOffers('Music & Media')" class="offer-tab px-3 py-1 rounded-lg text-xs font-semibold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-white transition">Music & Media</button>
+        <button onclick="filterOffers('Creative & Productivity')" class="offer-tab px-3 py-1 rounded-lg text-xs font-semibold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-white transition">Creative</button>
+        <button onclick="filterOffers('Lifestyle')" class="offer-tab px-3 py-1 rounded-lg text-xs font-semibold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-white transition">Lifestyle</button>
+      </div>
+    </div>
+
+    <!-- Offers Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" id="offersGrid">
+      {% for o in student_offers %}
+        <div class="offer-card p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-500/40 transition flex flex-col justify-between"
+             data-category="{{ o.category }}">
+          <div>
+            <div class="flex items-start justify-between mb-2.5">
+              <span class="text-2xl p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm">{{ o.icon }}</span>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-mono">
+                {{ o.discount }}
+              </span>
+            </div>
+
+            <h3 class="text-xs font-bold text-white leading-tight mb-1">{{ o.title }}</h3>
+            <span class="text-[10px] text-slate-400 font-medium block mb-2">{{ o.provider }} • {{ o.category }}</span>
+
+            <div class="p-2.5 rounded-lg bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800/80 text-xs mb-3">
+              <div class="flex justify-between items-baseline mb-0.5">
+                <span class="text-slate-400 text-[10px]">Student:</span>
+                <span class="font-bold font-mono text-emerald-600 dark:text-emerald-400">{{ o.student_price }}</span>
+              </div>
+              <div class="flex justify-between items-baseline text-[10px] text-slate-400">
+                <span>Regular:</span>
+                <span class="line-through">{{ o.regular_price }}</span>
+              </div>
+              <div class="mt-1.5 pt-1.5 border-t border-slate-100 dark:border-slate-800/60 flex justify-between text-[10px]">
+                <span class="text-indigo-500 dark:text-indigo-400 font-semibold">Value:</span>
+                <span class="font-bold text-slate-600 dark:text-slate-300 font-mono">{{ o.annual_savings }}</span>
+              </div>
+            </div>
+
+            <p class="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed mb-3">{{ o.highlight }}</p>
+          </div>
+
+          <div class="pt-2 border-t border-slate-200 dark:border-slate-800/80 flex items-center justify-between">
+            <span class="text-[10px] text-slate-400 font-medium truncate max-w-[120px]">{{ o.verification }}</span>
+            <a href="{{ o.url }}" target="_blank" rel="noopener noreferrer"
+               class="px-2.5 py-1 rounded-lg bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-600 dark:text-indigo-300 text-[11px] font-semibold border border-indigo-500/20 transition flex items-center space-x-1">
+              <span>Claim Deal</span>
+              <span>↗</span>
+            </a>
+          </div>
+
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+
+  <!-- ================= SMART SAVINGS GOALS ================= -->
+  <div class="glass-card rounded-2xl p-6">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+      <div>
+        <h2 class="text-lg font-heading font-bold text-white flex items-center space-x-2">
+          <span>🎯</span>
+          <span>Smart Savings Goals & Velocity Forecaster (₹ INR)</span>
+        </h2>
+        <p class="text-xs text-slate-400">Milestone projections and monthly savings velocity</p>
+      </div>
+      <button onclick="openModal('goalModal')" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition shadow-md shadow-indigo-600/20 flex items-center space-x-1.5 self-start sm:self-auto">
+        <span>+</span>
+        <span>Create New Goal</span>
+      </button>
+    </div>
+
+    <!-- Goals Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+      {% for g in goals %}
+        <div class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-500/40 transition flex flex-col justify-between relative overflow-hidden group">
+          
+          <div>
+            <div class="flex items-start justify-between mb-3">
+              <div class="flex items-center space-x-2.5">
+                <span class="text-2xl p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">{{ g.icon or '🎯' }}</span>
+                <div>
+                  <h3 class="text-sm font-bold text-white leading-tight">{{ g.title }}</h3>
+                  <span class="text-[11px] text-slate-400 font-mono">Target: ₹{{ "{:,.2f}".format(g.target_amount) }} • Deadline: {{ g.target_date_dmy }}</span>
+                </div>
+              </div>
+              
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full
+                {% if g.status == 'completed' %} bg-emerald-500/10 text-emerald-600 dark:text-emerald-300
+                {% elif g.status == 'ahead' %} bg-indigo-500/10 text-indigo-600 dark:text-indigo-300
+                {% else %} bg-amber-500/10 text-amber-600 dark:text-amber-300 {% endif %}">
+                {% if g.status == 'completed' %}Done! 🎉{% else %}{{ g.days_left }}d left{% endif %}
+              </span>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="mt-4 mb-2">
+              <div class="flex justify-between text-xs mb-1.5">
+                <span class="text-slate-500 dark:text-slate-400 font-semibold font-mono">₹{{ "{:,.2f}".format(g.current_amount) }} saved</span>
+                <span class="font-bold font-mono text-indigo-600 dark:text-indigo-400">{{ g.pct }}%</span>
+              </div>
+              <div class="w-full bg-slate-200 dark:bg-slate-800 rounded-full h-2.5 overflow-hidden">
+                <div class="h-2.5 rounded-full transition-all duration-500
+                  {% if g.pct >= 100 %}bg-emerald-500
+                  {% elif g.pct >= 60 %}bg-indigo-500
+                  {% else %}bg-gradient-to-r from-indigo-500 to-pink-500{% endif %}"
+                  style="width: {{ g.pct }}%"></div>
+              </div>
+            </div>
+
+            <div class="mt-3 p-2.5 rounded-lg bg-white dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800/80 text-[11px] text-slate-600 dark:text-slate-300 flex items-center space-x-2">
+              <span>⚡</span>
+              <p class="leading-tight">{{ g.projected_text }}</p>
+            </div>
+          </div>
+
+          <div class="mt-5 pt-3 border-t border-slate-200 dark:border-slate-800/80 flex items-center justify-between gap-2">
+            <button onclick="openContributeModal({{ g.id }}, '{{ g.title|replace("'", "\\'") }}', {{ g.target_amount - g.current_amount }})"
+                    class="flex-1 py-1.5 px-3 rounded-xl bg-vault-600 hover:bg-vault-500 text-white text-xs font-semibold transition text-center shadow-md shadow-vault-600/20">
+              Contribute
+            </button>
+            <form action="/goals/{{ g.id }}/delete" method="POST" onsubmit="return confirm('Archive this goal? Funds will be returned to your Piggy Bank vault.');">
+              <button type="submit" class="p-1.5 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-rose-900/40 text-slate-500 hover:text-rose-400 transition text-xs" title="Delete Goal">
+                🗑️
+              </button>
+            </form>
+          </div>
+
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+
+  <!-- ================= INTERACTIVE FINTECH GRAPHS (CHART.JS) ================= -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    
+    <!-- Graph 1: Category Expenses Donut (5 cols) -->
+    <div class="lg:col-span-5 glass-card rounded-2xl p-6 flex flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h3 class="text-base font-heading font-bold text-white flex items-center space-x-2">
+              <span>🍛</span>
+              <span>Category Expense Breakdown</span>
+            </h3>
+            <p class="text-xs text-slate-400">Share of monthly spend by category</p>
+          </div>
+          <span class="text-xs font-mono font-bold text-rose-500 dark:text-rose-400">₹{{ "{:,.2f}".format(expenses) }}</span>
+        </div>
+        
+        <div class="relative h-56 flex items-center justify-center">
+          <canvas id="categoryDonutChart"></canvas>
+        </div>
+      </div>
+
+      <div class="mt-4 pt-3 border-t border-slate-200 dark:border-slate-800 grid grid-cols-2 gap-2 text-xs">
+        {% for cat in category_totals[:6] %}
+          <div class="flex items-center justify-between p-1.5 rounded-lg bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-slate-800">
+            <div class="flex items-center space-x-1.5 truncate">
+              <span>{{ cat.meta.icon }}</span>
+              <span class="text-slate-700 dark:text-slate-300 truncate">{{ cat.category }}</span>
+            </div>
+            <span class="font-mono text-slate-500 dark:text-slate-400 font-semibold">{{ cat.share_pct }}%</span>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Graph 2: Cash Flow Timeline (7 cols) -->
+    <div class="lg:col-span-7 glass-card rounded-2xl p-6 flex flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h3 class="text-base font-heading font-bold text-white flex items-center space-x-2">
+              <span>📈</span>
+              <span>Cash Flow Velocity & Trends (₹ INR)</span>
+            </h3>
+            <p class="text-xs text-slate-400">Historical Inflow vs Outflow timeline</p>
+          </div>
+          <div class="flex items-center space-x-3 text-xs">
+            <span class="flex items-center space-x-1 text-indigo-500 dark:text-indigo-400 font-semibold">
+              <span class="w-2.5 h-2.5 rounded-full bg-indigo-500 inline-block"></span>
+              <span>Inflow</span>
+            </span>
+            <span class="flex items-center space-x-1 text-rose-500 dark:text-rose-400 font-semibold">
+              <span class="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span>
+              <span>Outflow</span>
+            </span>
+          </div>
+        </div>
+
+        <div class="relative h-64">
+          <canvas id="cashflowTrendChart"></canvas>
+        </div>
+      </div>
+
+      <div class="mt-4 p-3 rounded-xl bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs">
+        <div class="flex items-center space-x-2">
+          <span class="text-lg">⏳</span>
+          <span class="text-slate-700 dark:text-slate-300">Runway Survival Buffer (piggy + goals + surplus):</span>
+        </div>
+        <span class="font-mono font-bold text-emerald-600 dark:text-emerald-400 text-sm">{{ health.runway_months }} Months</span>
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- ================= CATEGORY BUDGET GUARDRAILS ================= -->
+  <div class="glass-card rounded-2xl p-6" id="categoryBudgetsSection">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+      <div>
+        <h2 class="text-lg font-heading font-bold text-white flex items-center space-x-2">
+          <span>📊</span>
+          <span>Category Budgets & Guardrails (₹ INR)</span>
+        </h2>
+        <p class="text-xs text-slate-400">Real-time monthly spending vs limit</p>
+      </div>
+      <button onclick="openModal('budgetModal')" class="px-3 py-1.5 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold border border-slate-300 dark:border-slate-700 transition">
+        Adjust Limits
+      </button>
+    </div>
+
+    <!-- Small Warning Banner in Category Budgets & Guardrails -->
+    {% set overruns = budgets | selectattr('overrun') | list %}
+    {% if overruns %}
+      <div id="categoryBudgetWarningBanner" class="mb-5 p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-start sm:items-center justify-between gap-3 text-xs text-amber-300 shadow-sm">
+        <div class="flex items-center space-x-2.5">
+          <span class="text-lg">⚠️</span>
+          <div>
+            <span class="font-bold text-amber-200">Guardrail Warning:</span>
+            <span>you are about to cross your monthly limit for this catagory!</span>
+            <span class="text-[11px] text-amber-400/90 block sm:inline sm:ml-1 font-mono">
+              ({% for o in overruns %}{{ o.category }}: ₹{{ "{:,.2f}".format(o.spent_dec) }} / ₹{{ "{:,.0f}".format(o.limit_dec) }}{% if not loop.last %}, {% endif %}{% endfor %})
+            </span>
+          </div>
+        </div>
+        <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 shrink-0">Limit Crossed</span>
+      </div>
+    {% endif %}
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {% for b in budgets %}
+        <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/80 border {% if b.overrun %}border-rose-500/50 bg-rose-500/5{% else %}border-slate-200 dark:border-slate-800{% endif %} flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center space-x-2">
+                <span class="text-lg">{{ b.meta.icon }}</span>
+                <span class="text-xs font-bold text-white">{{ b.category }}</span>
+              </div>
+              {% if b.overrun %}
+                <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-500 dark:text-rose-300 uppercase">Overrun!</span>
+              {% else %}
+                <span class="text-[10px] font-mono text-slate-400">₹{{ "{:,.0f}".format(b.remaining) }} left</span>
+              {% endif %}
+            </div>
+
+            <div class="flex justify-between items-baseline text-xs font-mono mb-1.5">
+              <span class="font-bold {% if b.overrun %}text-rose-500{% else %}text-slate-700 dark:text-slate-200{% endif %}">₹{{ "{:,.2f}".format(b.spent_dec) }}</span>
+              <span class="text-slate-400">/ ₹{{ "{:,.0f}".format(b.limit_dec) }}</span>
+            </div>
+
+            <div class="w-full bg-slate-200 dark:bg-slate-800 rounded-full h-2 overflow-hidden mb-2">
+              <div class="h-2 rounded-full transition-all duration-300
+                {% if b.percent >= 100 %}bg-rose-500
+                {% elif b.percent >= 75 %}bg-amber-500
+                {% else %}bg-emerald-500{% endif %}"
+                style="width: {{ b.percent }}%"></div>
+            </div>
+          </div>
+
+          <!-- Small warning message for category over limit -->
+          {% if b.overrun %}
+            <div class="mt-2 pt-2 border-t border-rose-500/20 text-[10px] text-rose-300 flex items-start space-x-1.5 font-medium leading-tight">
+              <span class="text-xs">⚠️</span>
+              <span>you are about to cross your monthly limit for this catagory!</span>
+            </div>
+          {% elif b.percent >= 85 %}
+            <div class="mt-2 pt-2 border-t border-amber-500/20 text-[10px] text-amber-300 flex items-start space-x-1.5 font-medium leading-tight">
+              <span class="text-xs">⚠️</span>
+              <span>Approaching monthly limit ({{ b.percent }}% spent)</span>
+            </div>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+
+  <!-- ================= RECENT TRANSACTIONS LEDGER ================= -->
+  <div class="glass-card rounded-2xl p-6">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+      <div>
+        <h2 class="text-lg font-heading font-bold text-white flex items-center space-x-2">
+          <span>🧾</span>
+          <span>Transaction Activity Ledger</span>
+        </h2>
+        <p class="text-xs text-slate-400">All recent student income, campus expenses, and automated round-ups</p>
+      </div>
+      <div class="flex items-center space-x-2">
+        <a href="/pay" class="px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-semibold transition shadow-sm flex items-center space-x-1.5">
+          <span>💳</span>
+          <span>Pay via Gateway</span>
+        </a>
+        <button onclick="openModal('transactionModal')" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition shadow-sm flex items-center space-x-1.5">
+          <span>+</span>
+          <span>Add Transaction</span>
+        </button>
+        <a href="/export/pdf" target="_blank" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition">
+          📄 PDF Statement
+        </a>
+      </div>
+    </div>
+
+    <!-- Filter input -->
+    <div class="mb-4 flex flex-col sm:flex-row gap-2">
+      <input type="text" id="txSearch" onkeyup="filterTransactions()" placeholder="Search description, category, or notes..."
+             class="flex-1 px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-indigo-500">
+      <select id="txTypeFilter" onchange="filterTransactions()" class="px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-700 dark:text-slate-300 focus:outline-none">
+        <option value="all">All Types</option>
+        <option value="income">Incomes (+)</option>
+        <option value="expense">Expenses (-)</option>
+      </select>
+    </div>
+
+    <!-- Table -->
+    <div class="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800">
+      <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-800 text-left text-xs" id="txTable">
+        <thead class="bg-slate-100 dark:bg-slate-950/80 text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold">
+          <tr>
+            <th class="py-3 px-4">Date (DD-MM-YYYY)</th>
+            <th class="py-3 px-4">Category</th>
+            <th class="py-3 px-4">Description</th>
+            <th class="py-3 px-4">Notes</th>
+            <th class="py-3 px-4 text-right">Amount (₹)</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-200 dark:divide-slate-800/60 bg-white dark:bg-slate-900/40">
+          {% for tx in transactions %}
+            <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition tx-row" data-type="{{ tx.transaction_type }}" data-search="{{ tx.description|lower }} {{ tx.category|lower }} {{ tx.notes|lower }}">
+              <td class="py-3 px-4 text-indigo-400 font-mono font-semibold whitespace-nowrap">{{ tx.formatted_date }}</td>
+              <td class="py-3 px-4 whitespace-nowrap">
+                <span class="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200">
+                  <span>{{ tx.meta.icon }}</span>
+                  <span>{{ tx.category }}</span>
+                </span>
+              </td>
+              <td class="py-3 px-4 text-white font-medium">{{ tx.description }}</td>
+              <td class="py-3 px-4 text-slate-400 truncate max-w-xs">{{ tx.notes or '—' }}</td>
+              <td class="py-3 px-4 text-right font-mono font-bold whitespace-nowrap
+                {% if tx.transaction_type == 'income' %}text-emerald-500{% else %}text-slate-700 dark:text-slate-200{% endif %}">
+                {% if tx.transaction_type == 'income' %}+{% else %}-{% endif %}₹{{ "{:,.2f}".format(tx.amount) }}
+              </td>
+            </tr>
+          {% else %}
+            <tr>
+              <td colspan="5" class="py-8 text-center text-slate-500">No transactions recorded yet. Click '+ Add Transaction' or load demo data!</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+
+<!-- ================= MODALS ================= -->
+
+<!-- 1. Add Transaction Modal -->
+<div id="transactionModal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+  <div class="glass-card bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-base font-bold text-white flex items-center space-x-2">
+        <span>💸</span>
+        <span>Log Transaction (₹ INR)</span>
+      </h3>
+      <button onclick="closeModal('transactionModal')" class="text-slate-400 hover:text-white">✕</button>
+    </div>
+
+    <form id="addTransactionForm" action="/transaction" method="POST" class="space-y-3.5" onsubmit="return handleTransactionSubmit(event)">
+      <div>
+        <label class="block text-xs font-semibold text-slate-300 mb-1">Description</label>
+        <input type="text" name="description" placeholder="e.g. Chai & Samosa, Swiggy, Metro Card, Book" required
+               class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs focus:border-indigo-500 focus:outline-none">
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Type</label>
+          <select name="transaction_type" id="modalTxType" onchange="toggleRoundupOption(); checkTxBudgetWarning();" required
+                  class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs focus:border-indigo-500 focus:outline-none">
+            <option value="expense">Expense (-)</option>
+            <option value="income">Income (+)</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Category</label>
+          <select name="category" id="modalTxCategory" onchange="checkTxBudgetWarning()" required
+                  class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs focus:border-indigo-500 focus:outline-none">
+            {% for c in categories %}
+              <option value="{{ c.name }}">{{ c.icon }} {{ c.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Amount (₹)</label>
+          <input type="number" step="0.01" name="amount" id="modalTxAmount" oninput="checkTxBudgetWarning()" placeholder="65.00" required min="0.01"
+                 class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs focus:border-indigo-500 focus:outline-none font-mono">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Date (DD-MM-YYYY)</label>
+          <input type="text" name="transaction_date" value="{{ today_dmy }}" placeholder="DD-MM-YYYY" required pattern="\d{2}-\d{2}-\d{4}"
+                 class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs focus:border-indigo-500 focus:outline-none font-mono">
+        </div>
+      </div>
+
+      <!-- Live Inline Warning Box inside Transaction Modal -->
+      <div id="modalBudgetWarningBox" class="hidden p-3 rounded-xl bg-amber-500/15 border border-amber-500/40 text-amber-300 text-xs shadow-sm">
+        <div class="flex items-start space-x-2">
+          <span class="text-base leading-none">⚠️</span>
+          <div class="flex-1">
+            <span class="font-bold text-amber-200">Budget Warning:</span>
+            <span>you are about to cross your monthly limit for this catagory!</span>
+            <div id="modalBudgetWarningDetail" class="text-[11px] text-amber-400/90 font-mono mt-0.5"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Spare Change Round-up Toggle -->
+      <div id="roundupContainer" class="p-3 rounded-xl bg-pink-500/10 border border-pink-500/30 flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+          <span class="text-lg">🐷</span>
+          <div>
+            <div class="text-xs font-bold text-pink-500 dark:text-pink-200">Auto Round-Up to Next ₹10</div>
+            <div class="text-[10px] text-slate-400">Rounds to next ₹10 & routes spare change into Piggy Vault</div>
+          </div>
+        </div>
+        <input type="checkbox" name="auto_roundup" value="1" checked class="w-4 h-4 accent-pink-500 rounded cursor-pointer">
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-300 mb-1">Notes (Optional)</label>
+        <input type="text" name="notes" placeholder="e.g. Paid via UPI / GPay, Split with roommates"
+               class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs focus:border-indigo-500 focus:outline-none">
+      </div>
+
+      <div class="pt-2 flex justify-end space-x-2">
+        <button type="button" onclick="closeModal('transactionModal')" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white bg-slate-800 transition">Cancel</button>
+        <button type="submit" class="px-5 py-2 rounded-xl text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 transition shadow-lg shadow-indigo-600/25">Save Transaction</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Category Budget Crossing Pop-up Warning Modal -->
+<div id="budgetLimitPopUpModal" class="fixed inset-0 z-[60] hidden bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
+  <div class="glass-card bg-slate-900 border border-amber-500/40 rounded-2xl max-w-md w-full p-6 shadow-2xl relative transform transition-all duration-200">
+    <div class="w-14 h-14 rounded-2xl bg-amber-500/20 border border-amber-500/30 text-amber-400 flex items-center justify-center text-3xl mx-auto mb-4 animate-bounce">
+      ⚠️
+    </div>
+
+    <h3 class="text-center text-base font-bold text-white mb-2 flex items-center justify-center space-x-1.5">
+      <span>Category Budget Warning</span>
+    </h3>
+
+    <div class="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/25 text-center mb-4">
+      <p class="text-xs sm:text-sm font-bold text-amber-300 mb-1.5">
+        "you are about to cross your monthly limit for this catagory!"
+      </p>
+      <p class="text-[11px] text-slate-400">
+        Your transaction will <strong class="text-emerald-400">NOT be declined</strong>. You can proceed to log this payment, or go back to edit the amount.
+      </p>
+    </div>
+
+    <div class="space-y-2 p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs font-mono mb-5">
+      <div class="flex justify-between text-slate-400">
+        <span>Category:</span>
+        <span id="popupWarnCategory" class="text-white font-bold">Food</span>
+      </div>
+      <div class="flex justify-between text-slate-400">
+        <span>Current Spent:</span>
+        <span id="popupWarnCurrent" class="text-slate-200">₹0.00</span>
+      </div>
+      <div class="flex justify-between text-slate-400">
+        <span>Category Monthly Limit:</span>
+        <span id="popupWarnLimit" class="text-slate-200">₹0.00</span>
+      </div>
+      <div class="flex justify-between text-slate-400">
+        <span>This Transaction:</span>
+        <span id="popupWarnAmount" class="text-rose-400 font-bold">+₹0.00</span>
+      </div>
+      <div class="pt-2 border-t border-slate-800 flex justify-between font-bold text-amber-300">
+        <span>Projected Total:</span>
+        <span id="popupWarnProjected">₹0.00</span>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-3">
+      <button type="button" onclick="closeBudgetLimitPopUp()" class="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 transition text-center">
+        Edit Payment
+      </button>
+      <button type="button" onclick="confirmBudgetCrossingAndSubmit()" class="px-4 py-2.5 rounded-xl text-xs font-semibold text-white bg-amber-600 hover:bg-amber-500 transition shadow-lg shadow-amber-600/25 text-center flex items-center justify-center space-x-1 font-bold">
+        <span>Proceed Anyway</span>
+        <span>→</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Recurring Payment Modal -->
+<div id="recurringModal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+  <div class="glass-card bg-slate-900 border border-indigo-500/40 rounded-2xl max-w-md w-full p-6 shadow-2xl">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-base font-bold text-white flex items-center space-x-2">
+        <span>🚌</span>
+        <span>Add Recurring Commitment (₹ INR)</span>
+      </h3>
+      <button onclick="closeModal('recurringModal')" class="text-slate-400 hover:text-white">✕</button>
+    </div>
+
+    <form action="/recurring-payments" method="POST" class="space-y-3.5">
+      <div>
+        <label class="block text-xs font-semibold text-slate-300 mb-1">Title</label>
+        <input type="text" name="title" placeholder="e.g. Metro Card Recharge, Bus Pass, Mess Dues" required
+               class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs focus:border-indigo-500 focus:outline-none">
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Category</label>
+          <select name="category" required class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs focus:border-indigo-500 focus:outline-none">
+            {% for c in categories %}
+              <option value="{{ c.name }}" {% if c.name == 'Transport' %}selected{% endif %}>{{ c.icon }} {{ c.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Amount (₹ INR)</label>
+          <input type="number" step="0.01" name="amount" placeholder="800.00" required
+                 class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs focus:border-indigo-500 focus:outline-none font-mono">
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Frequency</label>
+          <select name="frequency" required class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs focus:border-indigo-500 focus:outline-none">
+            <option value="Monthly" selected>Monthly</option>
+            <option value="Weekly">Weekly</option>
+            <option value="Daily">Daily</option>
+            <option value="Semester">Semester (4 Months)</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Payment Method</label>
+          <select name="payment_method" required class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs focus:border-indigo-500 focus:outline-none">
+            <option value="UPI / SmartCard" selected>UPI / SmartCard</option>
+            <option value="Auto-Debit">Auto-Debit</option>
+            <option value="Cash / Counter">Cash / Counter</option>
+            <option value="NetBanking">NetBanking</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-300 mb-1">Next Renewal Date (DD-MM-YYYY)</label>
+        <input type="text" name="next_due_date" value="{{ today_dmy }}" placeholder="DD-MM-YYYY" required pattern="\d{2}-\d{2}-\d{4}"
+               class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs focus:border-indigo-500 focus:outline-none font-mono">
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-300 mb-1">Transit Route / Notes (Optional)</label>
+        <input type="text" name="notes" placeholder="e.g. Metro Line 2 / Route 42A / SmartCard #8942"
+               class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs focus:border-indigo-500 focus:outline-none">
+      </div>
+
+      <div class="flex items-center space-x-2 pt-1">
+        <input type="checkbox" id="recAutoRoundup" name="auto_roundup" value="1" checked class="rounded border-slate-700 bg-slate-950 text-indigo-600 focus:ring-indigo-500">
+        <label for="recAutoRoundup" class="text-xs text-slate-300 select-none">Auto round-up spare change into Piggy Vault on renewal</label>
+      </div>
+
+      <div class="pt-2 flex items-center justify-end space-x-2">
+        <button type="button" onclick="closeModal('recurringModal')" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white transition">Cancel</button>
+        <button type="submit" class="px-5 py-2 rounded-xl text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 transition shadow-md shadow-indigo-600/20">Activate Commitment</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Recurring UPI QR Modal -->
+<div id="recurringQrModal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+  <div class="glass-card bg-slate-900 border border-slate-700 rounded-2xl max-w-sm w-full p-6 shadow-2xl text-center">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-base font-bold text-white flex items-center space-x-2">
+        <span>📱</span>
+        <span>Scan to Pay via UPI</span>
+      </h3>
+      <button onclick="closeModal('recurringQrModal')" class="text-slate-400 hover:text-white">✕</button>
+    </div>
+
+    <div class="p-4 bg-white rounded-2xl inline-block shadow-inner mb-4">
+      <img id="recurringQrImg" src="" alt="UPI Payment QR Code" class="w-48 h-48 mx-auto">
+    </div>
+
+    <div class="mb-4">
+      <h4 id="recurringQrTitle" class="text-sm font-bold text-white">Payment</h4>
+      <div id="recurringQrAmount" class="text-lg font-extrabold font-mono text-indigo-400 mt-0.5">₹0.00</div>
+      <p class="text-[11px] text-slate-400 mt-1">Scan with Google Pay, PhonePe, Paytm, or any BHIM UPI app on your smartphone</p>
+    </div>
+
+    <div class="flex items-center justify-center space-x-2 pt-2 border-t border-slate-800">
+      <a id="recurringQrDeepLink" href="#" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition flex items-center space-x-1.5">
+        <span>📱</span>
+        <span>Open UPI App</span>
+      </a>
+      <button onclick="closeModal('recurringQrModal')" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition">
+        Close
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- 2. Bill Splitter Modal -->
+<div id="billSplitModal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+  <div class="glass-card bg-slate-900 border border-emerald-500/40 rounded-2xl max-w-md w-full p-6 shadow-2xl">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-base font-bold text-white flex items-center space-x-2">
+        <span>🤝</span>
+        <span>Split a Campus Bill</span>
+      </h3>
+      <button onclick="closeModal('billSplitModal')" class="text-slate-400 hover:text-white">✕</button>
+    </div>
+
+    <form action="/bill-split" method="POST" class="space-y-3.5">
+      <div>
+        <label class="block text-xs font-semibold text-slate-300 mb-1">Bill Description</label>
+        <input type="text" name="title" placeholder="e.g. Swiggy Pizza Night, Cab to Fest, PG WiFi Bill" required
+               class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs focus:border-emerald-500 focus:outline-none">
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Total Bill (₹)</label>
+          <input type="number" step="1" id="splitTotalAmount" oninput="calculateSplitPreview()" name="total_amount" placeholder="800" required min="10"
+                 class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs focus:border-emerald-500 focus:outline-none font-mono">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Number of People</label>
+          <input type="number" step="1" id="splitPeopleCount" oninput="calculateSplitPreview()" name="split_count" value="4" required min="2" max="20"
+                 class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs focus:border-emerald-500 focus:outline-none font-mono">
+        </div>
+      </div>
+
+      <!-- Live Split Preview Banner -->
+      <div class="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-between text-xs">
+        <span class="text-slate-300 font-semibold">Each Person Pays:</span>
+        <span class="font-mono font-bold text-emerald-400 text-sm" id="splitPerPersonPreview">₹200.00</span>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Who Paid?</label>
+          <select name="paid_by" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs focus:border-emerald-500 focus:outline-none">
+            <option value="You">You (Others owe you)</option>
+            <option value="Friend">Friend (You owe them)</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Category</label>
+          <select name="category" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs focus:border-emerald-500 focus:outline-none">
+            <option value="Food">🍛 Food</option>
+            <option value="Transport">🛵 Transport</option>
+            <option value="Bills">⚡ Bills</option>
+            <option value="Entertainment">🎬 Entertainment</option>
+            <option value="Other">✨ Other</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-300 mb-1">Friend Names / Roommates</label>
+        <input type="text" name="friends" placeholder="e.g. Rohan, Priya, Amit"
+               class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs focus:border-emerald-500 focus:outline-none">
+      </div>
+
+      <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between text-xs">
+        <div>
+          <div class="font-bold text-white">Record My Share as Expense</div>
+          <div class="text-[10px] text-slate-400">Automatically adds your share to transactions on {{ today_dmy }}</div>
+        </div>
+        <input type="checkbox" name="auto_record" value="1" checked class="w-4 h-4 accent-emerald-500 rounded cursor-pointer">
+      </div>
+
+      <div class="pt-2 flex justify-end space-x-2">
+        <button type="button" onclick="closeModal('billSplitModal')" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white bg-slate-800 transition">Cancel</button>
+        <button type="submit" class="px-5 py-2 rounded-xl text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-500 transition shadow-lg shadow-emerald-600/25">Save & Split</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- 3. Set Budget Modal -->
+<div id="budgetModal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+  <div class="glass-card bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-base font-bold text-white flex items-center space-x-2">
+        <span>📊</span>
+        <span>Set Category Monthly Limit (₹ INR)</span>
+      </h3>
+      <button onclick="closeModal('budgetModal')" class="text-slate-400 hover:text-white">✕</button>
+    </div>
+
+    <form action="/budget" method="POST" class="space-y-4">
+      <div>
+        <label class="block text-xs font-semibold text-slate-300 mb-1">Category</label>
+        <select name="category" required class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs focus:border-indigo-500 focus:outline-none">
+          {% for c in categories %}
+            <option value="{{ c.name }}">{{ c.icon }} {{ c.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-300 mb-1">Monthly Limit (₹)</label>
+        <div class="relative">
+          <span class="absolute left-3 top-2 text-slate-400 text-xs font-semibold">₹</span>
+          <input type="number" step="100" name="monthly_limit" placeholder="4500" required min="100"
+                 class="w-full pl-7 pr-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs focus:border-indigo-500 focus:outline-none font-mono">
+        </div>
+      </div>
+
+      <div class="pt-2 flex justify-end space-x-2">
+        <button type="button" onclick="closeModal('budgetModal')" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white bg-slate-800 transition">Cancel</button>
+        <button type="submit" class="px-5 py-2 rounded-xl text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 transition shadow-lg shadow-indigo-600/25">Set Limit</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- 4. Piggy Bank Deposit Modal -->
+<div id="piggyModal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+  <div class="glass-card bg-slate-900 border border-pink-500/40 rounded-2xl max-w-sm w-full p-6 shadow-2xl">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-base font-bold text-white flex items-center space-x-2">
+        <span>🐷</span>
+        <span>Deposit into Piggy Vault (₹)</span>
+      </h3>
+      <button onclick="closeModal('piggyModal')" class="text-slate-400 hover:text-white">✕</button>
+    </div>
+
+    <form action="/piggy/deposit" method="POST" class="space-y-3.5">
+      <div>
+        <label class="block text-xs font-semibold text-slate-300 mb-1">Amount to Stash (₹)</label>
+        <div class="relative">
+          <span class="absolute left-3 top-2 text-slate-400 text-xs font-semibold">₹</span>
+          <input type="number" step="10" name="amount" placeholder="200.00" required min="10"
+                 class="w-full pl-7 pr-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs focus:border-pink-500 focus:outline-none font-mono">
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-300 mb-1">Reason / Note</label>
+        <input type="text" name="description" placeholder="e.g. Skipped Swiggy, Prize bounty" value="Deliberate Savings Stash"
+               class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs focus:border-pink-500 focus:outline-none">
+      </div>
+
+      <div class="pt-2 flex justify-end space-x-2">
+        <button type="button" onclick="closeModal('piggyModal')" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white bg-slate-800 transition">Cancel</button>
+        <button type="submit" class="px-5 py-2 rounded-xl text-xs font-semibold text-white bg-pink-600 hover:bg-pink-500 transition shadow-lg shadow-pink-600/30">Stash Cash</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- 5. Piggy Bank Withdraw Modal -->
+<div id="piggyWithdrawModal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+  <div class="glass-card bg-slate-900 border border-slate-700 rounded-2xl max-w-sm w-full p-6 shadow-2xl">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-base font-bold text-white flex items-center space-x-2">
+        <span>🔨</span>
+        <span>Withdraw from Piggy Vault</span>
+      </h3>
+      <button onclick="closeModal('piggyWithdrawModal')" class="text-slate-400 hover:text-white">✕</button>
+    </div>
+
+    <div class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs text-slate-500 mb-3 flex justify-between">
+      <span>Available in Vault:</span>
+      <span class="font-bold text-pink-500 font-mono">₹{{ "{:,.2f}".format(piggy_balance) }}</span>
+    </div>
+
+    <form action="/piggy/withdraw" method="POST" class="space-y-3.5">
+      <div>
+        <label class="block text-xs font-semibold text-slate-300 mb-1">Withdraw Amount (₹)</label>
+        <div class="relative">
+          <span class="absolute left-3 top-2 text-slate-400 text-xs font-semibold">₹</span>
+          <input type="number" step="10" name="amount" max="{{ piggy_balance }}" placeholder="500.00" required min="10"
+                 class="w-full pl-7 pr-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs focus:border-indigo-500 focus:outline-none font-mono">
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-300 mb-1">Withdrawal Reason</label>
+        <input type="text" name="reason" placeholder="e.g. Urgent college fee, emergency expense" required
+               class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs focus:border-indigo-500 focus:outline-none">
+      </div>
+
+      <div class="pt-2 flex justify-end space-x-2">
+        <button type="button" onclick="closeModal('piggyWithdrawModal')" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white bg-slate-800 transition">Cancel</button>
+        <button type="submit" class="px-5 py-2 rounded-xl text-xs font-semibold text-white bg-slate-700 hover:bg-slate-600 transition">Confirm Withdraw</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- 6. Create Goal Modal -->
+<div id="goalModal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+  <div class="glass-card bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-base font-bold text-white flex items-center space-x-2">
+        <span>🎯</span>
+        <span>Create Savings Goal (₹ INR)</span>
+      </h3>
+      <button onclick="closeModal('goalModal')" class="text-slate-400 hover:text-white">✕</button>
+    </div>
+
+    <form action="/goals" method="POST" class="space-y-3.5">
+      <div>
+        <label class="block text-xs font-semibold text-slate-300 mb-1">Goal Title</label>
+        <input type="text" name="title" placeholder="e.g. Apple M3 MacBook Air, Goa Hackathon, Buffer" required
+               class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs focus:border-indigo-500 focus:outline-none">
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Target Amount (₹)</label>
+          <input type="number" step="500" name="target_amount" placeholder="45000" required min="500"
+                 class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs focus:border-indigo-500 focus:outline-none font-mono">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Initial Seed (₹)</label>
+          <input type="number" step="500" name="initial_deposit" placeholder="2000" value="0" min="0"
+                 class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs focus:border-indigo-500 focus:outline-none font-mono">
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Target Deadline (DD-MM-YYYY)</label>
+          <input type="text" name="target_date" placeholder="DD-MM-YYYY" required pattern="\d{2}-\d{2}-\d{4}"
+                 class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs focus:border-indigo-500 focus:outline-none font-mono">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Icon Emoji</label>
+          <select name="icon" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs focus:border-indigo-500 focus:outline-none">
+            <option value="💻">💻 Tech / Laptop</option>
+            <option value="🛡️">🛡️ Emergency Buffer</option>
+            <option value="✈️">✈️ Travel / Hackathon Trip</option>
+            <option value="🎓">🎓 Tuition / Exam Fees</option>
+            <option value="🛵">🛵 Bike / Scooter</option>
+            <option value="🏠">🏠 PG / Deposit</option>
+            <option value="🎁">🎁 Special Gift</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="pt-2 flex justify-end space-x-2">
+        <button type="button" onclick="closeModal('goalModal')" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white bg-slate-800 transition">Cancel</button>
+        <button type="submit" class="px-5 py-2 rounded-xl text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 transition shadow-lg shadow-indigo-600/25">Create Goal</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- 7. Contribute to Goal Modal -->
+<div id="contributeModal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+  <div class="glass-card bg-slate-900 border border-slate-700 rounded-2xl max-w-sm w-full p-6 shadow-2xl">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-base font-bold text-white flex items-center space-x-2">
+        <span>🚀</span>
+        <span>Contribute to Goal (₹)</span>
+      </h3>
+      <button onclick="closeModal('contributeModal')" class="text-slate-400 hover:text-white">✕</button>
+    </div>
+
+    <form id="contributeForm" method="POST" class="space-y-3.5">
+      <div class="text-xs text-slate-300">
+        Adding funds to: <span id="contributeGoalTitle" class="font-bold text-indigo-400"></span>
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-300 mb-1">Contribution Amount (₹)</label>
+        <div class="relative">
+          <span class="absolute left-3 top-2 text-slate-400 text-xs font-semibold">₹</span>
+          <input type="number" step="50" name="amount" placeholder="1000.00" required min="50"
+                 class="w-full pl-7 pr-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs focus:border-indigo-500 focus:outline-none font-mono">
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-300 mb-1">Funding Source</label>
+        <select name="source" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs focus:border-indigo-500 focus:outline-none">
+          <option value="income">General Inflow / Bank Balance</option>
+          <option value="piggy">🐷 Transfer from Piggy Bank Vault (₹{{ "{:,.2f}".format(piggy_balance) }} available)</option>
+        </select>
+      </div>
+
+      <div class="pt-2 flex justify-end space-x-2">
+        <button type="button" onclick="closeModal('contributeModal')" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white bg-slate-800 transition">Cancel</button>
+        <button type="submit" class="px-5 py-2 rounded-xl text-xs font-semibold text-white bg-vault-600 hover:bg-vault-500 transition shadow-lg shadow-vault-600/30">Deposit Funds</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const baseIncome = {{ income }};
+  const baseExpenses = {{ expenses }};
+  const baseScore = {{ health.score }};
+  const baseRunway = {{ health.runway_months }};
+
+  let donutChartInstance = null;
+  let trendChartInstance = null;
+
+  function isDarkMode() {
+    return document.documentElement.classList.contains('dark');
+  }
+
+  function getChartColors() {
+    const dark = isDarkMode();
+    return {
+      gridColor: dark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.06)',
+      textColor: dark ? '#94a3b8' : '#64748b',
+      borderColor: dark ? '#0f172a' : '#ffffff'
+    };
+  }
+
+  async function renderCharts() {
+    try {
+      const res = await fetch('/api/chart-data');
+      const data = await res.json();
+      const themeColors = getChartColors();
+
+      // Donut Chart
+      const ctxDonut = document.getElementById('categoryDonutChart');
+      if (ctxDonut) {
+        if (donutChartInstance) donutChartInstance.destroy();
+        donutChartInstance = new Chart(ctxDonut, {
+          type: 'doughnut',
+          data: {
+            labels: data.categories.labels,
+            datasets: [{
+              data: data.categories.data,
+              backgroundColor: data.categories.colors,
+              borderWidth: 2,
+              borderColor: themeColors.borderColor,
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: function(context) {
+                    return ` ${context.label}: ₹${context.raw.toLocaleString('en-IN')}`;
+                  }
+                }
+              }
+            },
+            cutout: '72%'
+          }
+        });
+      }
+
+      // Area Trend Chart
+      const ctxTrend = document.getElementById('cashflowTrendChart');
+      if (ctxTrend) {
+        if (trendChartInstance) trendChartInstance.destroy();
+        trendChartInstance = new Chart(ctxTrend, {
+          type: 'line',
+          data: {
+            labels: data.cashflow.labels,
+            datasets: [
+              {
+                label: 'Inflow',
+                data: data.cashflow.income,
+                borderColor: '#6366f1',
+                backgroundColor: 'rgba(99, 102, 241, 0.12)',
+                fill: true,
+                tension: 0.35,
+                pointRadius: 4,
+                pointHoverRadius: 6
+              },
+              {
+                label: 'Outflow',
+                data: data.cashflow.expenses,
+                borderColor: '#f43f5e',
+                backgroundColor: 'rgba(244, 63, 94, 0.12)',
+                fill: true,
+                tension: 0.35,
+                pointRadius: 4,
+                pointHoverRadius: 6
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: {
+                grid: { color: themeColors.gridColor },
+                ticks: { color: themeColors.textColor, font: { size: 10 } }
+              },
+              y: {
+                grid: { color: themeColors.gridColor },
+                ticks: {
+                  color: themeColors.textColor,
+                  font: { size: 10 },
+                  callback: v => '₹' + v.toLocaleString('en-IN')
+                }
+              }
+            },
+            plugins: {
+              legend: { display: false }
+            }
+          }
+        });
+      }
+
+    } catch (err) {
+      console.error('Failed to load chart data:', err);
+    }
+  }
+
+  function updateChartsTheme() {
+    renderCharts();
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    renderCharts();
+  });
+
+  // Piggy Bank Wobble & Confetti
+  function triggerPiggyOink() {
+    const coin = document.getElementById('coinParticle');
+    if (coin) {
+      coin.classList.remove('hidden');
+      setTimeout(() => coin.classList.add('hidden'), 600);
+    }
+    if (typeof confetti === 'function') {
+      confetti({
+        particleCount: 35,
+        spread: 50,
+        origin: { y: 0.7 }
+      });
+    }
+  }
+
+  // Live Bill Split Preview Calculator
+  function calculateSplitPreview() {
+    const tot = parseFloat(document.getElementById('splitTotalAmount').value) || 0;
+    const count = parseInt(document.getElementById('splitPeopleCount').value) || 1;
+    const share = count > 0 ? (tot / count).toFixed(2) : 0;
+    document.getElementById('splitPerPersonPreview').innerText = '₹' + parseFloat(share).toLocaleString('en-IN', { minimumFractionDigits: 2 });
+  }
+
+  // Contribute Modal
+  function openContributeModal(goalId, goalTitle, remaining) {
+    document.getElementById('contributeGoalTitle').innerText = goalTitle;
+    document.getElementById('contributeForm').action = `/goals/${goalId}/contribute`;
+    openModal('contributeModal');
+  }
+
+  // Toggle Round-up
+  function toggleRoundupOption() {
+    const type = document.getElementById('modalTxType').value;
+    const container = document.getElementById('roundupContainer');
+    if (type === 'income') {
+      container.classList.add('hidden');
+    } else {
+      container.classList.remove('hidden');
+    }
+  }
+
+  // Filter Student Offers
+  function filterOffers(cat) {
+    const cards = document.querySelectorAll('.offer-card');
+    const tabs = document.querySelectorAll('.offer-tab');
+    
+    tabs.forEach(t => {
+      if (t.innerText.includes(cat) || (cat === 'all' && t.innerText.includes('All'))) {
+        t.className = 'offer-tab px-3 py-1 rounded-lg text-xs font-semibold bg-indigo-600 text-white transition active-tab';
+      } else {
+        t.className = 'offer-tab px-3 py-1 rounded-lg text-xs font-semibold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-white transition';
+      }
+    });
+
+    cards.forEach(card => {
+      if (cat === 'all' || card.getAttribute('data-category') === cat) {
+        card.style.display = 'flex';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+  }
+
+  // Transaction Table Filter
+  function filterTransactions() {
+    const query = document.getElementById('txSearch').value.toLowerCase();
+    const typeFilter = document.getElementById('txTypeFilter').value;
+    const rows = document.querySelectorAll('.tx-row');
+
+    rows.forEach(row => {
+      const rowType = row.getAttribute('data-type');
+      const rowSearch = row.getAttribute('data-search');
+
+      const matchesQuery = !query || rowSearch.includes(query);
+      const matchesType = (typeFilter === 'all') || (rowType === typeFilter);
+
+      if (matchesQuery && matchesType) {
+        row.style.display = '';
+      } else {
+        row.style.display = 'none';
+      }
+    });
+  }
+
+  // ================= CATEGORY BUDGET GUARDRAILS WARNING LOGIC =================
+  window.CATEGORY_BUDGETS_MAP = {
+    {% for b in budgets %}
+      "{{ b.category }}": {
+        "spent": {{ b.spent_dec | float }},
+        "limit": {{ b.limit_dec | float }},
+        "remaining": {{ b.remaining | float }},
+        "icon": "{{ b.meta.icon }}"
+      }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  };
+
+  let budgetWarningBypassed = false;
+
+  function checkTxBudgetWarning() {
+    const typeEl = document.getElementById('modalTxType');
+    const catSelect = document.getElementById('modalTxCategory');
+    const amtInput = document.getElementById('modalTxAmount');
+    const warningBox = document.getElementById('modalBudgetWarningBox');
+    const detailBox = document.getElementById('modalBudgetWarningDetail');
+    
+    if (!typeEl || !catSelect || !amtInput || !warningBox) return false;
+
+    const type = typeEl.value;
+    const cat = catSelect.value;
+    const amt = parseFloat(amtInput.value) || 0;
+    const bInfo = window.CATEGORY_BUDGETS_MAP[cat];
+
+    if (type === 'expense' && bInfo && amt > 0) {
+      const newTotal = bInfo.spent + amt;
+      if (newTotal > bInfo.limit) {
+        warningBox.classList.remove('hidden');
+        const overAmt = newTotal - bInfo.limit;
+        detailBox.innerText = `${bInfo.icon || '🏷️'} ${cat}: Current ₹${bInfo.spent.toFixed(2)} + Payment ₹${amt.toFixed(2)} = ₹${newTotal.toFixed(2)} (Exceeds ₹${bInfo.limit.toFixed(2)} by ₹${overAmt.toFixed(2)})`;
+        return true;
+      }
+    }
+    warningBox.classList.add('hidden');
+    return false;
+  }
+
+  function handleTransactionSubmit(e) {
+    if (budgetWarningBypassed) {
+      return true; // Allow transaction without decline
+    }
+
+    const typeEl = document.getElementById('modalTxType');
+    const catSelect = document.getElementById('modalTxCategory');
+    const amtInput = document.getElementById('modalTxAmount');
+
+    if (!typeEl || !catSelect || !amtInput) return true;
+
+    const type = typeEl.value;
+    if (type !== 'expense') return true;
+
+    const cat = catSelect.value;
+    const amt = parseFloat(amtInput.value) || 0;
+    const bInfo = window.CATEGORY_BUDGETS_MAP[cat];
+
+    if (bInfo && amt > 0 && (bInfo.spent + amt > bInfo.limit)) {
+      if (e) e.preventDefault();
+      
+      const newTotal = bInfo.spent + amt;
+      const overAmt = newTotal - bInfo.limit;
+
+      document.getElementById('popupWarnCategory').innerText = `${bInfo.icon || '🏷️'} ${cat}`;
+      document.getElementById('popupWarnCurrent').innerText = `₹${bInfo.spent.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+      document.getElementById('popupWarnLimit').innerText = `₹${bInfo.limit.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+      document.getElementById('popupWarnAmount').innerText = `+₹${amt.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+      document.getElementById('popupWarnProjected').innerText = `₹${newTotal.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})} (Exceeds limit by ₹${overAmt.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})})`;
+
+      const popupModal = document.getElementById('budgetLimitPopUpModal');
+      if (popupModal) {
+        popupModal.classList.remove('hidden');
+      } else {
+        const proceed = confirm('⚠️ you are about to cross your monthly limit for this catagory!\n\nDo you want to proceed with this payment?');
+        if (proceed) {
+          budgetWarningBypassed = true;
+          document.getElementById('addTransactionForm').submit();
+        }
+      }
+      return false;
+    }
+
+    return true;
+  }
+
+  function closeBudgetLimitPopUp() {
+    const popup = document.getElementById('budgetLimitPopUpModal');
+    if (popup) popup.classList.add('hidden');
+  }
+
+  function confirmBudgetCrossingAndSubmit() {
+    budgetWarningBypassed = true;
+    closeBudgetLimitPopUp();
+    const form = document.getElementById('addTransactionForm');
+    if (form) form.submit();
+  }
+
+  function showRecurringQr(title, amount) {
+    const qrModal = document.getElementById('recurringQrModal');
+    const titleEl = document.getElementById('recurringQrTitle');
+    const amtEl = document.getElementById('recurringQrAmount');
+    const imgEl = document.getElementById('recurringQrImg');
+    const linkEl = document.getElementById('recurringQrDeepLink');
+
+    if (titleEl) titleEl.innerText = title;
+    if (amtEl) amtEl.innerText = `₹${parseFloat(amount).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+
+    const studentName = '{{ user.name|lower|replace(" ", "") }}' || 'student';
+    const upiPayload = `upi://pay?pa=${studentName}@upi&pn={{ user.name }}&am=${amount}&cu=INR&tn=${encodeURIComponent(title)}`;
+
+    if (imgEl) {
+      imgEl.src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(upiPayload)}`;
+    }
+    if (linkEl) {
+      linkEl.href = upiPayload;
+    }
+    if (qrModal) qrModal.classList.remove('hidden');
+  }
+
+  function filterRecurring(cat, btn) {
+    document.querySelectorAll('.rec-filter-btn').forEach(b => {
+      b.classList.remove('bg-indigo-600', 'text-white');
+      b.classList.add('bg-slate-800/60', 'text-slate-400');
+    });
+    if (btn) {
+      btn.classList.add('bg-indigo-600', 'text-white');
+      btn.classList.remove('bg-slate-800/60', 'text-slate-400');
+    }
+    document.querySelectorAll('.recurring-item-card').forEach(card => {
+      const cardCat = card.getAttribute('data-cat') || '';
+      if (cat === 'all' || cardCat.toLowerCase() === cat.toLowerCase()) {
+        card.style.display = '';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+  }
+</script>
+{% endblock %}

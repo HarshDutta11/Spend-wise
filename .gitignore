@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+*.db
+*.db-shm
+*.db-wal
+*.pptx
+*.pdf
+*.log
+.env
+.env.*
+!.env.example
+gemini_key.txt
+node_modules/
+.codex-finalizer/
+.DS_Store

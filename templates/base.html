@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}SPENDWISE — Smart Student Financial Assistant & Bill Splitter{% endblock %}</title>
+  
+  <!-- Immediate Theme Initializer to prevent flash -->
+  <script>
+    if (localStorage.theme === 'light' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: light)').matches)) {
+      document.documentElement.classList.remove('dark');
+    } else {
+      document.documentElement.classList.add('dark');
+    }
+  </script>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            },
+            vault: {
+              400: '#34d399',
+              500: '#10b981',
+              600: '#059669',
+            },
+            piggy: {
+              300: '#f9a8d4',
+              400: '#f472b6',
+              500: '#ec4899',
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+            spendwise: ['Space Grotesk', 'Outfit', 'sans-serif'],
+            heading: ['Outfit', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts: Space Grotesk, Outfit & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@600;700;800&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Chart.js & Canvas Confetti CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    h1, h2, h3, .font-heading { font-family: 'Outfit', sans-serif; }
+    .font-spendwise {
+      font-family: 'Space Grotesk', sans-serif;
+      letter-spacing: -0.04em;
+      font-weight: 800;
+    }
+
+    /* Professional Executive Dark Theme */
+    html.dark body {
+      background: #090d16;
+      color: #f1f5f9;
+    }
+    html.dark .glass-card {
+      background: #0f172a;
+      border: 1px solid #1e293b;
+    }
+    html.dark .glass-nav {
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid #1e293b;
+    }
+    .nav-pill {
+      background-color: rgba(30, 41, 59, 0.7);
+      border: 1px solid rgba(51, 65, 85, 0.8);
+      color: #cbd5e1;
+    }
+    .nav-pill:hover {
+      background-color: #1e293b;
+      color: #ffffff;
+    }
+    .nav-tab-item {
+      color: #94a3b8;
+    }
+    .nav-tab-item:hover {
+      background-color: rgba(30, 41, 59, 0.5);
+      color: #f1f5f9;
+    }
+    .nav-tab-active {
+      background-color: #1e293b;
+      border: 1px solid #334155;
+      color: #ffffff;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    }
+
+    /* ========================================================= */
+    /* COMPREHENSIVE HIGH-CONTRAST LIGHT THEME                   */
+    /* ========================================================= */
+    html:not(.dark) body {
+      background: #f8fafc;
+      color: #0f172a;
+    }
+    html:not(.dark) .glass-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+    }
+    html:not(.dark) .glass-nav {
+      background: rgba(255, 255, 255, 0.98);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid #e2e8f0;
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+    }
+
+    /* All Slate Backgrounds mapped to clean light surfaces */
+    html:not(.dark) [class*="bg-slate-900"] {
+      background-color: #ffffff !important;
+      border-color: #e2e8f0 !important;
+    }
+    html:not(.dark) [class*="bg-slate-950"] {
+      background-color: #f8fafc !important;
+      border-color: #e2e8f0 !important;
+    }
+    html:not(.dark) [class*="bg-slate-800"],
+    html:not(.dark) [class*="bg-slate-700"] {
+      background-color: #f1f5f9 !important;
+      color: #0f172a !important;
+    }
+    html:not(.dark) [class*="border-slate-800"],
+    html:not(.dark) [class*="border-slate-700"] {
+      border-color: #e2e8f0 !important;
+    }
+
+    /* Navbar items in Light Mode */
+    html:not(.dark) .nav-pill {
+      background-color: #f1f5f9 !important;
+      border: 1px solid #cbd5e1 !important;
+      color: #0f172a !important;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+    }
+    html:not(.dark) .nav-pill:hover {
+      background-color: #e2e8f0 !important;
+      border-color: #94a3b8 !important;
+      color: #0f172a !important;
+    }
+    html:not(.dark) .nav-pill span,
+    html:not(.dark) .nav-pill div,
+    html:not(.dark) .nav-pill p,
+    html:not(.dark) .nav-pill-text {
+      color: #0f172a !important;
+    }
+    html:not(.dark) .nav-pill svg {
+      color: #334155 !important;
+      stroke: #334155 !important;
+    }
+    html:not(.dark) .nav-tab-item {
+      color: #475569 !important;
+    }
+    html:not(.dark) .nav-tab-item:hover {
+      background-color: #f1f5f9 !important;
+      color: #0f172a !important;
+    }
+    html:not(.dark) .nav-tab-active {
+      background-color: #ffffff !important;
+      border: 1px solid #cbd5e1 !important;
+      color: #0f172a !important;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+      font-weight: 600 !important;
+    }
+    html:not(.dark) .nav-tab-active span {
+      color: #0f172a !important;
+    }
+
+    /* High-Contrast Text Colors in Light Mode */
+    html:not(.dark) .text-white { color: #0f172a !important; }
+    html:not(.dark) .text-slate-100 { color: #0f172a !important; }
+    html:not(.dark) .text-slate-200 { color: #1e293b !important; }
+    html:not(.dark) .text-slate-300 { color: #334155 !important; }
+    html:not(.dark) .text-slate-400 { color: #475569 !important; }
+    html:not(.dark) .text-slate-500 { color: #64748b !important; }
+
+    /* High-Contrast Color Accents in Light Mode */
+    html:not(.dark) .text-emerald-400,
+    html:not(.dark) .text-emerald-300 { color: #059669 !important; }
+    html:not(.dark) .text-amber-400,
+    html:not(.dark) .text-amber-300 { color: #b45309 !important; }
+    html:not(.dark) .text-rose-400,
+    html:not(.dark) .text-rose-300 { color: #be123c !important; }
+    html:not(.dark) .text-indigo-400,
+    html:not(.dark) .text-indigo-300 { color: #4338ca !important; }
+    html:not(.dark) .text-sky-400 { color: #0284c7 !important; }
+    html:not(.dark) .text-pink-400,
+    html:not(.dark) .text-pink-300 { color: #be185d !important; }
+    html:not(.dark) .text-purple-400,
+    html:not(.dark) .text-purple-300 { color: #6b21a8 !important; }
+
+    /* Input & Select Controls in Light Mode */
+    html:not(.dark) input,
+    html:not(.dark) select,
+    html:not(.dark) textarea {
+      background-color: #ffffff !important;
+      color: #0f172a !important;
+      border-color: #cbd5e1 !important;
+    }
+    html:not(.dark) input::placeholder,
+    html:not(.dark) textarea::placeholder {
+      color: #94a3b8 !important;
+    }
+
+    /* Badges in Light Mode */
+    html:not(.dark) [class*="bg-emerald-500"] {
+      background-color: #ecfdf5 !important;
+      color: #065f46 !important;
+      border-color: #a7f3d0 !important;
+    }
+    html:not(.dark) [class*="bg-indigo-500"] {
+      background-color: #eef2ff !important;
+      color: #3730a3 !important;
+      border-color: #c7d2fe !important;
+    }
+    html:not(.dark) [class*="bg-amber-500"] {
+      background-color: #fffbeb !important;
+      color: #92400e !important;
+      border-color: #fde68a !important;
+    }
+    html:not(.dark) [class*="bg-rose-500"] {
+      background-color: #fff1f2 !important;
+      color: #9f1239 !important;
+      border-color: #fecdd3 !important;
+    }
+
+
+
+    .piggy-bounce {
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .piggy-bounce:hover {
+      transform: scale(1.06) rotate(-2deg);
+    }
+    @keyframes coinDrop {
+      0% { transform: translateY(-40px) scale(0.6); opacity: 0; }
+      50% { opacity: 1; }
+      100% { transform: translateY(0) scale(1); opacity: 1; }
+    }
+    .animate-coin {
+      animation: coinDrop 0.5s ease-out forwards;
+    }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #475569; border-radius: 9999px; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col transition-colors duration-200">
+
+  <!-- Top Navigation Bar -->
+  <nav class="sticky top-0 z-40 glass-nav">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        
+        <!-- Left: Logo & Primary Nav Tabs -->
+        <div class="flex items-center space-x-6">
+          <a href="/" class="flex items-center space-x-2.5 shrink-0 group">
+            <div class="w-8 h-8 rounded-lg bg-indigo-600 group-hover:bg-indigo-500 text-white flex items-center justify-center font-bold text-sm shadow-sm transition">
+              ₹
+            </div>
+            <div class="flex items-center space-x-1.5">
+              <span class="text-lg font-spendwise uppercase tracking-tight text-white font-extrabold">
+                SPEND<span class="text-indigo-400">WISE</span>
+              </span>
+              <span class="px-1.5 py-0.5 text-[9px] font-semibold tracking-wider rounded bg-slate-800 text-slate-400 border border-slate-700/60">INR</span>
+            </div>
+          </a>
+
+          <!-- Main Navigation Links (Single-line, sleek, whitespace-nowrap) -->
+          <div class="hidden md:flex items-center space-x-1">
+            <a href="/" class="whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center space-x-1.5 {% if request.path == '/' %}nav-tab-active bg-slate-800 text-white border border-slate-700 shadow-xs{% else %}nav-tab-item text-slate-400 hover:text-slate-200 hover:bg-slate-800/50{% endif %}">
+              <span>Dashboard</span>
+            </a>
+            <a href="/chat" class="whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center space-x-1.5 {% if request.path == '/chat' %}nav-tab-active bg-slate-800 text-white border border-slate-700 shadow-xs{% else %}nav-tab-item text-slate-400 hover:text-slate-200 hover:bg-slate-800/50{% endif %}">
+              <span>AI Assistant</span>
+              <span class="px-1.5 py-0.2 text-[9px] font-bold rounded {% if request.path == '/chat' %}bg-indigo-500/20 text-indigo-300{% else %}bg-indigo-950/60 text-indigo-400 border border-indigo-500/30{% endif %}">AI Chat</span>
+            </a>
+            <a href="/#recurring-section" class="nav-tab-item whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 transition flex items-center space-x-1.5">
+              <span>🚌 Transit & Passes</span>
+            </a>
+            <button onclick="openModal('billSplitModal')" class="nav-tab-item whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 transition flex items-center space-x-1.5">
+              <span>Split Bill</span>
+            </button>
+            <a href="/pay" class="whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center space-x-1.5 {% if request.path == '/pay' %}bg-emerald-600 text-white shadow-xs{% else %}bg-emerald-950/40 text-emerald-300 hover:bg-emerald-900/60 border border-emerald-500/30{% endif %}">
+              <span>💳 Quick Pay</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Right: Actions & Profile -->
+        <div class="flex items-center space-x-2 sm:space-x-3 shrink-0">
+          
+          <!-- Streak Pill (Clean & Subtle) -->
+          <div class="nav-pill hidden sm:flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg bg-slate-800/60 border border-slate-700/60 text-slate-300 text-xs font-medium whitespace-nowrap" title="Daily Budgeting Streak">
+            <span>🔥</span>
+            <span class="nav-pill-text text-slate-200 font-semibold text-[11px]">{{ user.streak_days }}d Streak</span>
+          </div>
+
+          <!-- Quick PDF Statement Link -->
+          <a href="/export/pdf" target="_blank" class="nav-pill hidden sm:inline-flex items-center space-x-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg text-slate-300 hover:text-white bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 transition whitespace-nowrap" title="View / Print PDF Statement">
+            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+            <span class="nav-pill-text">PDF</span>
+          </a>
+
+          <!-- Dark / Light Mode Switcher Button -->
+          <button onclick="toggleTheme()" id="themeToggleBtn" class="nav-pill p-2 rounded-lg bg-slate-800/60 hover:bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700/60 transition" title="Toggle Dark / Light Mode">
+            <svg id="themeSunIcon" class="w-4 h-4 hidden dark:block text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+            <svg id="themeMoonIcon" class="w-4 h-4 block dark:hidden text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+            </svg>
+          </button>
+
+          <!-- Profile / Account Trigger -->
+          <button onclick="openModal('profileModal')" class="nav-pill flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700/80 text-xs font-medium border border-slate-700/80 transition whitespace-nowrap" title="Account Settings & Sandbox Controls">
+            <span class="text-sm leading-none">{{ user.avatar or '🎓' }}</span>
+            <span class="nav-pill-text text-slate-200 font-semibold max-w-[100px] truncate">{{ user.name }}</span>
+            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Mobile Navigation Row -->
+      <div class="flex md:hidden items-center justify-between py-2 border-t border-slate-800/60 text-xs overflow-x-auto no-scrollbar space-x-2">
+        <a href="/" class="whitespace-nowrap px-2.5 py-1 rounded-md {% if request.path == '/' %}text-white font-semibold bg-slate-800{% else %}text-slate-400{% endif %}">Dashboard</a>
+        <a href="/chat" class="whitespace-nowrap px-2.5 py-1 rounded-md {% if request.path == '/chat' %}text-white font-semibold bg-slate-800{% else %}text-slate-400{% endif %}">AI Assistant</a>
+        <a href="/#recurring-section" class="whitespace-nowrap px-2.5 py-1 rounded-md text-slate-400">Transit & Passes</a>
+        <button onclick="openModal('billSplitModal')" class="whitespace-nowrap px-2.5 py-1 rounded-md text-slate-400">Split Bill</button>
+      </div>
+
+    </div>
+  </nav>
+
+  <!-- Flash Message Container -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4 w-full">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="space-y-2">
+          {% for category, message in messages %}
+            <div class="flex items-center justify-between p-3.5 rounded-xl text-sm font-medium border shadow-lg transition transform duration-200
+              {% if category == 'success' %} bg-emerald-950/80 text-emerald-200 border-emerald-500/30
+              {% elif category == 'error' %} bg-rose-950/80 text-rose-200 border-rose-500/30
+              {% elif category == 'warning' %} bg-amber-950/90 text-amber-200 border-amber-500/40
+              {% else %} bg-indigo-950/80 text-indigo-200 border-indigo-500/30 {% endif %}">
+              <div class="flex items-center space-x-2.5">
+                <span class="text-lg">
+                  {% if category == 'success' %}✅{% elif category == 'error' %}❌{% elif category == 'warning' %}⚠️{% else %}ℹ️{% endif %}
+                </span>
+                <span>{{ message }}</span>
+              </div>
+              <button onclick="this.parentElement.remove()" class="text-slate-400 hover:text-white text-xs font-bold px-2 py-1">✕</button>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+  </div>
+
+  <!-- Main Content Area -->
+  <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-slate-800/80 bg-slate-950/60 dark:bg-slate-950/80 py-6 text-center text-xs text-slate-500">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center space-x-2">
+        <span class="font-spendwise font-bold text-slate-300 text-sm tracking-tight">SPENDWISE</span>
+        <span>•</span>
+        <span>Smart Financial Assistant & Group Bill Splitter</span>
+      </div>
+      <p class="text-slate-400">Campus Financial Intelligence & Budgeting • Currency in Indian Rupees (₹ INR)</p>
+      <div class="flex items-center space-x-4 text-slate-400">
+        <form action="/demo-data" method="POST" class="inline">
+          <button type="submit" class="hover:text-indigo-400 transition">Reload Demo</button>
+        </form>
+        <span>•</span>
+        <button onclick="openModal('profileModal')" class="hover:text-indigo-400 transition">Update Profile</button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Profile & Income Modal -->
+  <div id="profileModal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="glass-card bg-slate-900 border border-slate-700/80 rounded-2xl max-w-md w-full p-6 shadow-2xl">
+      <div class="flex items-center justify-between mb-5">
+        <div class="flex items-center space-x-2">
+          <span class="text-2xl">👤</span>
+          <h3 class="text-lg font-bold text-white">Your Financial Profile</h3>
+        </div>
+        <button onclick="closeModal('profileModal')" class="text-slate-400 hover:text-white">✕</button>
+      </div>
+      <form action="/profile" method="POST" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">Full Name / Display Name</label>
+          <input type="text" name="name" value="{{ user.name }}" required
+                 class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white text-sm focus:border-indigo-500 focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">College / Institution Affiliation</label>
+          <input type="text" name="college_name" value="{{ user.college_name or 'Engineering College' }}" required
+                 class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white text-sm focus:border-indigo-500 focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">Monthly Income / Stipend (₹ INR)</label>
+          <p class="text-[11px] text-slate-400 mb-2">Used by the SpendWise engine to calculate your safe daily spend and runway days.</p>
+          <div class="relative">
+            <span class="absolute left-3.5 top-2.5 text-slate-400 text-sm font-semibold">₹</span>
+            <input type="number" step="1" name="monthly_income" value="{{ user.monthly_income }}" required min="0"
+                   class="w-full pl-8 pr-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white text-sm focus:border-indigo-500 focus:outline-none font-mono">
+          </div>
+        </div>
+        <div class="pt-2 flex justify-end space-x-3">
+          <button type="button" onclick="closeModal('profileModal')" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white bg-slate-800 transition">Cancel</button>
+          <button type="submit" class="px-5 py-2 rounded-xl text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 transition shadow-lg shadow-indigo-600/25">Save Profile</button>
+        </div>
+      </form>
+
+      <!-- Account & Sandbox Controls -->
+      <div class="border-t border-slate-800/80 pt-4 mt-5 space-y-3">
+        <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Account Utilities & Data Sandbox</p>
+        <div class="grid grid-cols-2 gap-2">
+          <a href="/export/pdf" target="_blank" class="flex items-center justify-center space-x-1.5 px-3 py-2 rounded-xl text-xs font-medium text-slate-200 bg-slate-800/80 hover:bg-slate-750 border border-slate-700/80 transition">
+            <span>📄</span>
+            <span>Download PDF</span>
+          </a>
+          <form action="/demo-data" method="POST" class="w-full">
+            <button type="submit" class="w-full flex items-center justify-center space-x-1.5 px-3 py-2 rounded-xl text-xs font-medium text-slate-200 bg-slate-800/80 hover:bg-slate-750 border border-slate-700/80 transition">
+              <span>⚡</span>
+              <span>Reload Demo</span>
+            </button>
+          </form>
+        </div>
+        <div class="pt-1 flex justify-between items-center text-xs">
+          <span class="text-slate-400">Need to start completely over?</span>
+          <button type="button" onclick="closeModal('profileModal'); openModal('resetModal');" class="text-rose-400 hover:text-rose-300 font-semibold transition">
+            Clear Account Data →
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reset Confirmation Modal -->
+  <div id="resetModal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="glass-card bg-slate-900 border border-rose-900/50 rounded-2xl max-w-sm w-full p-6 shadow-2xl">
+      <div class="text-center">
+        <div class="w-12 h-12 rounded-full bg-rose-500/10 text-rose-400 flex items-center justify-center mx-auto mb-3 text-2xl border border-rose-500/20">
+          ⚠️
+        </div>
+        <h3 class="text-lg font-bold text-white mb-1">Reset All Account Data?</h3>
+        <p class="text-xs text-slate-400 mb-5">This will clear all transactions, bills, savings goals, budgets, and piggy bank deposits. You can reload Indian demo data at any time.</p>
+        <form action="/reset" method="POST" class="flex justify-center space-x-3">
+          <button type="button" onclick="closeModal('resetModal')" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white bg-slate-800 transition">Cancel</button>
+          <button type="submit" class="px-5 py-2 rounded-xl text-xs font-semibold text-white bg-rose-600 hover:bg-rose-500 transition shadow-lg shadow-rose-600/30">Yes, Reset</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function toggleTheme() {
+      const html = document.documentElement;
+      if (html.classList.contains('dark')) {
+        html.classList.remove('dark');
+        localStorage.theme = 'light';
+      } else {
+        html.classList.add('dark');
+        localStorage.theme = 'dark';
+      }
+      if (typeof updateChartsTheme === 'function') {
+        updateChartsTheme();
+      }
+    }
+
+    function openModal(id) {
+      const el = document.getElementById(id);
+      if (el) el.classList.remove('hidden');
+    }
+    function closeModal(id) {
+      const el = document.getElementById(id);
+      if (el) el.classList.add('hidden');
+    }
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('[id$="Modal"]').forEach(m => m.classList.add('hidden'));
+      }
+    });
+
+    function quickStash(amt) {
+      fetch('/piggy/deposit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ amount: amt, description: 'SFI Quick Stash' })
+      }).then(() => {
+        window.location.reload();
+      });
+    }
+  </script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

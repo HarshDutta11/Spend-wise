@@ -1,0 +1,969 @@
+{% extends "base.html" %}
+
+{% block title %}SpendWise — Autonomous AI Financial Assistant & SFI Cognitive Engine{% endblock %}
+
+{% block content %}
+<style>
+  html:not(.dark) .user-bubble,
+  html:not(.dark) .bg-indigo-600 {
+    background-color: #4f46e5 !important;
+    color: #ffffff !important;
+  }
+  html:not(.dark) .user-bubble *,
+  html:not(.dark) .bg-indigo-600 * {
+    color: #ffffff !important;
+  }
+  html:not(.dark) #chatMessages strong {
+    color: #0f172a !important;
+  }
+</style>
+<div class="space-y-4 pb-8 max-w-6xl mx-auto flex flex-col h-[calc(100vh-6.5rem)]">
+
+  <!-- ================================================================= -->
+  <!-- TOP TELEMETRY HUD BAR (LIVE BACKEND SFI OBSERVATIONS)              -->
+  <!-- ================================================================= -->
+  <div class="p-3.5 sm:p-4 rounded-2xl bg-slate-900 border border-slate-800 shadow-sm shrink-0 flex flex-col md:flex-row md:items-center justify-between gap-3">
+    <div class="flex items-center space-x-3">
+      <div class="w-10 h-10 rounded-xl bg-indigo-600/20 border border-indigo-500/30 text-indigo-400 flex items-center justify-center text-xl shrink-0 font-bold">
+        🤖
+      </div>
+      <div>
+        <div class="flex items-center space-x-2">
+          <h1 class="text-sm sm:text-base font-extrabold text-white tracking-tight">SpendWise AI Financial Assistant</h1>
+          <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/25 animate-pulse">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1"></span>
+            SFI Backend Active
+          </span>
+        </div>
+        <p class="text-[11px] text-slate-400">Observes live transactions, predicts calendar runway date, benchmarks campus spending, and self-updates memory.</p>
+      </div>
+    </div>
+
+    <!-- Live Telemetry Mini Counters -->
+    <div class="flex items-center space-x-2 sm:space-x-3 overflow-x-auto no-scrollbar py-0.5">
+      <!-- Runway -->
+      <div class="px-2.5 py-1.5 rounded-xl bg-slate-950 border border-slate-800 text-center shrink-0">
+        <p class="text-[9px] uppercase tracking-wider text-slate-400 font-semibold">Runway</p>
+        <p class="text-xs sm:text-sm font-extrabold text-white font-mono">{{ cockpit.runway_days }} Days</p>
+        <p class="text-[9px] text-slate-500">{{ trajectory.runway_depletion_date }}</p>
+      </div>
+      <!-- Safe Daily Spend -->
+      <div class="px-2.5 py-1.5 rounded-xl bg-slate-950 border border-slate-800 text-center shrink-0">
+        <p class="text-[9px] uppercase tracking-wider text-slate-400 font-semibold">Safe Spend</p>
+        <p class="text-xs sm:text-sm font-extrabold text-emerald-400 font-mono">₹{{ "{:,.0f}".format(cockpit.safe_daily_spend) }}/d</p>
+        <p class="text-[9px] text-slate-500">Burn: ₹{{ "{:,.0f}".format(cockpit.daily_burn_rate) }}/d</p>
+      </div>
+      <!-- Memory Status -->
+      <div class="px-2.5 py-1.5 rounded-xl bg-indigo-950/40 border border-indigo-500/30 text-center shrink-0 cursor-pointer hover:bg-indigo-950/60 transition" onclick="openMemoryModal()" title="View what the bot has learned about you">
+        <p class="text-[9px] uppercase tracking-wider text-indigo-300 font-semibold">AI Memory</p>
+        <p class="text-xs sm:text-sm font-extrabold text-indigo-300 font-mono flex items-center justify-center space-x-1">
+          <span>🧠</span>
+          <span id="hudSolvedCount">{{ solved_count }}</span> Solved
+        </p>
+        <p class="text-[9px] text-indigo-400 underline">View Vault</p>
+      </div>
+
+      <!-- Google Gemini API Status -->
+      <div id="geminiHudPill" class="px-2.5 py-1.5 rounded-xl {% if gemini_status.has_key %}bg-gradient-to-r from-indigo-950/60 to-purple-950/60 border border-indigo-500/40{% else %}bg-slate-950 border border-slate-800 hover:border-indigo-500/60{% endif %} text-center shrink-0 cursor-pointer transition"
+           onclick="openGeminiModal()" title="Manage Google Gemini API configuration">
+        <p class="text-[9px] uppercase tracking-wider text-indigo-300 font-semibold flex items-center justify-center space-x-1">
+          <span>✨</span>
+          <span>Google Gemini</span>
+        </p>
+        <p class="text-xs sm:text-sm font-extrabold {% if gemini_status.has_key %}text-indigo-300{% else %}text-slate-400{% endif %} font-mono flex items-center justify-center space-x-1">
+          {% if gemini_status.has_key %}
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse mr-1"></span>
+            <span>{{ gemini_status.model.replace('gemini-', '').replace('-preview', '') }}</span>
+          {% else %}
+            <span class="text-indigo-400">+ Connect</span>
+          {% endif %}
+        </p>
+        <p class="text-[9px] text-indigo-400 underline" id="geminiHudSubtext">{% if gemini_status.has_key %}Active LLM{% else %}Setup API Key{% endif %}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================================= -->
+  <!-- QUICK PROMPTS CHIPS CAROUSEL                                      -->
+  <!-- ================================================================= -->
+  <div class="flex items-center space-x-2 overflow-x-auto no-scrollbar pb-1 text-xs shrink-0">
+    <span class="text-[11px] text-slate-400 font-semibold uppercase tracking-wider shrink-0 mr-1 flex items-center space-x-1">
+      <span>💡 Quick Queries:</span>
+    </span>
+    <button onclick="sendQuickPrompt('When will my money run out?')" class="whitespace-nowrap px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-300 text-xs font-medium transition shadow-xs flex items-center space-x-1.5">
+      <span>📊</span>
+      <span>When will my money run out?</span>
+    </button>
+    <button onclick="sendQuickPrompt('Why is my spending surging?')" class="whitespace-nowrap px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-300 text-xs font-medium transition shadow-xs flex items-center space-x-1.5">
+      <span>⚡</span>
+      <span>Weekend Burn Surge (+{{ comparison.weekend_surge_pct }}%)</span>
+    </button>
+    <button onclick="sendQuickPrompt('Compare Food vs Transport spending')" class="whitespace-nowrap px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-300 text-xs font-medium transition shadow-xs flex items-center space-x-1.5">
+      <span>⚖️</span>
+      <span>Compare Food vs Transport</span>
+    </button>
+    <button onclick="sendQuickPrompt('How does the hostel mess skip rebate work?')" class="whitespace-nowrap px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-300 text-xs font-medium transition shadow-xs flex items-center space-x-1.5">
+      <span>🍛</span>
+      <span>Hostel Mess Skip Rebate (Save ₹1,200)</span>
+    </button>
+    <button onclick="sendQuickPrompt('What is my exam defense cushion?')" class="whitespace-nowrap px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-300 text-xs font-medium transition shadow-xs flex items-center space-x-1.5">
+      <span>📚</span>
+      <span>Exam Surge Buffer</span>
+    </button>
+    <button onclick="sendQuickPrompt('Will I survive until the end of the month?')" class="whitespace-nowrap px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-indigo-300 text-xs font-medium transition shadow-xs flex items-center space-x-1.5">
+      <span>🎯</span>
+      <span>Survival Runway Check</span>
+    </button>
+    <button onclick="sendQuickPrompt('What is my daily burn limit?')" class="whitespace-nowrap px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-300 text-xs font-medium transition shadow-xs flex items-center space-x-1.5">
+      <span>⚡</span>
+      <span>Safe Daily Burn Rate</span>
+    </button>
+    <button onclick="sendQuickPrompt('How can I save ₹2,000 this month?')" class="whitespace-nowrap px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-300 text-xs font-medium transition shadow-xs flex items-center space-x-1.5">
+      <span>💰</span>
+      <span>How to save ₹2,000 this month?</span>
+    </button>
+    <button onclick="sendQuickPrompt('What do you know about me? Show memory vault')" class="whitespace-nowrap px-3 py-1.5 rounded-xl bg-indigo-950/40 hover:bg-indigo-950/60 border border-indigo-500/30 text-indigo-300 text-xs font-medium transition shadow-xs flex items-center space-x-1.5">
+      <span>🧠</span>
+      <span>What have you learned about me?</span>
+    </button>
+  </div>
+
+  <!-- ================================================================= -->
+  <!-- CONVERSATIONAL STREAM CONTAINER                                   -->
+  <!-- ================================================================= -->
+  <div class="flex-1 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-xl overflow-hidden flex flex-col min-h-0 relative">
+    
+    <!-- Messages Scroll Area -->
+    <div id="chatMessages" class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
+      
+      <!-- Welcome Initial Greeting -->
+      <div class="flex items-start space-x-3 max-w-3xl">
+        <div class="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-sm">
+          🤖
+        </div>
+        <div class="flex-1 space-y-3">
+          <div class="p-4 rounded-2xl rounded-tl-none bg-slate-950 border border-slate-800 text-slate-200 text-sm leading-relaxed shadow-sm">
+            <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-800/80">
+              <span class="text-xs font-bold text-indigo-400">SpendWise Financial Intelligence Agent</span>
+              <span class="text-[10px] text-slate-500 font-mono">{{ today_dmy }}</span>
+            </div>
+            <p>
+              Hi <strong class="text-white">{{ user.name }}</strong>! I am your autonomous financial assistant. I observe all your campus transactions, burn velocity, and budget limits in real time.
+            </p>
+            <p class="mt-2 text-xs text-slate-300">
+              ⚡ <strong>Real-Time Backend Observation</strong>: Your runway is currently <strong>{{ cockpit.runway_days }} Days</strong> (projected depletion: <strong class="text-indigo-400">{{ trajectory.runway_depletion_date }}</strong>). Daily burn is <strong>₹{{ "{:,.2f}".format(cockpit.daily_burn_rate) }}/day</strong>, with a safe spend limit of <strong>₹{{ "{:,.2f}".format(cockpit.safe_daily_spend) }}/day</strong>.
+            </p>
+            <p class="mt-2 text-xs text-slate-300">
+              🧠 <strong>Self-Updating Memory Active</strong>: Every question you ask or preference you share updates my persistent memory of your goals, living situation, and constraints.
+            </p>
+          </div>
+          <div class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold bg-indigo-500/10 border border-indigo-500/20 text-indigo-300">
+            <span>🧠 Memory Baseline: Noted target goal '{{ memory_dict.get('target_goal', 'Tech Equipment & Gear') }}'</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Render Historical Interactions -->
+      {% for chat in history %}
+      
+      <!-- User Query Bubble -->
+      <div class="flex items-start justify-end space-x-3">
+        <div class="user-bubble max-w-2xl bg-indigo-600 text-white p-3.5 sm:p-4 rounded-2xl rounded-tr-none shadow-sm text-sm leading-relaxed">
+          <p class="whitespace-pre-wrap">{{ chat.query }}</p>
+        </div>
+        <div class="w-8 h-8 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 flex items-center justify-center text-sm shrink-0 font-bold" title="{{ user.name }}">
+          {{ user.avatar or '🎓' }}
+        </div>
+      </div>
+
+      <!-- Bot Answer Bubble -->
+      <div class="flex items-start space-x-3 max-w-3xl">
+        <div class="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-sm">
+          🤖
+        </div>
+        <div class="flex-1 space-y-3">
+          <div class="p-4 rounded-2xl rounded-tl-none bg-slate-950 border border-slate-800 text-slate-200 text-sm leading-relaxed shadow-sm">
+            <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-800/80">
+              <span class="text-xs font-bold text-indigo-400">SpendWise SFI Intelligence</span>
+              <span class="text-[10px] text-slate-500 font-mono">{{ chat.created_at[:10] if chat.created_at else today_dmy }}</span>
+            </div>
+            
+            <div class="prose prose-invert text-sm max-w-none space-y-2 whitespace-pre-wrap leading-relaxed">{{ chat.response }}</div>
+
+            <!-- Structured Data Card (If Any) -->
+            {% if chat.parsed_data_card %}
+            <div class="mt-3 p-3 rounded-xl bg-slate-900 border border-slate-800 text-xs">
+              {% if chat.parsed_data_card.type == 'runway_telemetry' %}
+              <div class="flex items-center justify-between border-b border-slate-800 pb-2 mb-2">
+                <span class="font-bold text-indigo-400">{{ chat.parsed_data_card.title }}</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">{{ chat.parsed_data_card.status }}</span>
+              </div>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
+                <div>
+                  <p class="text-slate-500 text-[10px]">Depletion Date</p>
+                  <p class="font-bold text-white font-mono">{{ chat.parsed_data_card.depletion_date }}</p>
+                </div>
+                <div>
+                  <p class="text-slate-500 text-[10px]">Daily Burn</p>
+                  <p class="font-bold text-amber-300 font-mono">{{ chat.parsed_data_card.daily_burn }}</p>
+                </div>
+                <div>
+                  <p class="text-slate-500 text-[10px]">Safe Spend</p>
+                  <p class="font-bold text-emerald-400 font-mono">{{ chat.parsed_data_card.safe_daily }}</p>
+                </div>
+                <div>
+                  <p class="text-slate-500 text-[10px]">Exam Buffer</p>
+                  <p class="font-bold text-indigo-300 font-mono">{{ chat.parsed_data_card.exam_buffer }}</p>
+                </div>
+              </div>
+
+              {% elif chat.parsed_data_card.type == 'category_bar' %}
+              <div class="font-bold text-indigo-400 mb-2">{{ chat.parsed_data_card.title }}</div>
+              <div class="space-y-1.5">
+                <div>
+                  <div class="flex justify-between text-[11px] mb-0.5">
+                    <span class="text-slate-300">{{ chat.parsed_data_card.item_a.name }}</span>
+                    <span class="font-mono text-white">₹{{ "{:,.2f}".format(chat.parsed_data_card.item_a.amount) }} ({{ chat.parsed_data_card.item_a.pct }}%)</span>
+                  </div>
+                  <div class="w-full bg-slate-800 rounded-full h-2">
+                    <div class="bg-indigo-500 h-2 rounded-full" style="width: {{ [chat.parsed_data_card.item_a.pct, 100]|min }}%"></div>
+                  </div>
+                </div>
+                <div>
+                  <div class="flex justify-between text-[11px] mb-0.5">
+                    <span class="text-slate-300">{{ chat.parsed_data_card.item_b.name }}</span>
+                    <span class="font-mono text-white">₹{{ "{:,.2f}".format(chat.parsed_data_card.item_b.amount) }} ({{ chat.parsed_data_card.item_b.pct }}%)</span>
+                  </div>
+                  <div class="w-full bg-slate-800 rounded-full h-2">
+                    <div class="bg-emerald-500 h-2 rounded-full" style="width: {{ [chat.parsed_data_card.item_b.pct, 100]|min }}%"></div>
+                  </div>
+                </div>
+              </div>
+              <p class="mt-2 text-[10px] text-slate-400">Ratio: <strong class="text-white">{{ chat.parsed_data_card.ratio }}</strong> • Saving Potential: <strong class="text-emerald-400">{{ chat.parsed_data_card.saving_potential }}</strong></p>
+
+              {% elif chat.parsed_data_card.type == 'surge_comparison' %}
+              <div class="font-bold text-amber-400 mb-1">{{ chat.parsed_data_card.title }}</div>
+              <div class="grid grid-cols-2 gap-2 text-center my-2">
+                <div class="p-2 rounded bg-slate-950 border border-slate-800">
+                  <p class="text-[10px] text-slate-400">Weekday Burn</p>
+                  <p class="font-bold text-white font-mono">{{ chat.parsed_data_card.weekday_burn }}</p>
+                </div>
+                <div class="p-2 rounded bg-slate-950 border border-slate-800">
+                  <p class="text-[10px] text-slate-400">Weekend Burn</p>
+                  <p class="font-bold text-rose-400 font-mono">{{ chat.parsed_data_card.weekend_burn }}</p>
+                </div>
+              </div>
+              <p class="text-[10px] text-slate-400">Leakage: <strong class="text-white">{{ chat.parsed_data_card.monthly_leakage }}</strong> • Impact: <strong class="text-emerald-400">{{ chat.parsed_data_card.extension_impact }}</strong></p>
+
+
+              {% elif chat.parsed_data_card.metrics %}
+              <div class="flex items-center justify-between border-b border-slate-800 pb-2 mb-2">
+                <span class="font-bold text-indigo-400">{{ chat.parsed_data_card.title or 'Financial Telemetry' }}</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">✨ Gemini Live</span>
+              </div>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
+                {% for m in chat.parsed_data_card.metrics %}
+                <div class="p-2 rounded-lg bg-slate-950 border border-slate-800/80">
+                  <p class="text-slate-400 text-[10px]">{{ m.label }}</p>
+                  <p class="font-bold text-white font-mono mt-0.5 text-xs">{{ m.value }}</p>
+                </div>
+                {% endfor %}
+              </div>
+
+              {% else %}
+              <div class="font-bold text-slate-200 mb-1">{{ chat.parsed_data_card.title or 'SFI Intelligence Card' }}</div>
+              <p class="text-slate-400 text-[11px]">{{ chat.parsed_data_card.insight or chat.parsed_data_card.key_takeaway or 'Telemetry verified' }}</p>
+              {% endif %}
+            </div>
+            {% endif %}
+
+          </div>
+
+          <!-- Suggested Action Chips -->
+          {% if chat.parsed_actions %}
+          <div class="flex flex-wrap gap-1.5 pt-0.5">
+            {% for act in chat.parsed_actions %}
+            {% set act_label = act.label if act is mapping else act %}
+            {% set act_action = act.action if (act is mapping and act.action) else act_label %}
+            <button onclick="handleSuggestedAction('{{ act_action }}')" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700/80 text-indigo-300 hover:text-white text-[11px] font-medium transition flex items-center space-x-1">
+              <span>👉</span>
+              <span>{{ act_label }}</span>
+            </button>
+            {% endfor %}
+          </div>
+          {% endif %}
+
+        </div>
+      </div>
+      {% endfor %}
+
+    </div>
+
+    <!-- Typing Indicator (Hidden by Default) -->
+    <div id="typingIndicator" class="hidden px-6 py-2 bg-slate-950/80 border-t border-slate-800 flex items-center space-x-2 text-xs text-indigo-400">
+      <div class="flex space-x-1">
+        <div class="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce"></div>
+        <div class="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce [animation-delay:0.2s]"></div>
+        <div class="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce [animation-delay:0.4s]"></div>
+      </div>
+      <span>SpendWise AI observing live transactions & computing trajectory...</span>
+    </div>
+
+    <!-- Real-time Memory Learning Alert Pill (Appears upon new learning) -->
+    <div id="learningPill" class="hidden mx-4 mb-2 p-2 rounded-xl bg-indigo-950/80 border border-indigo-500/40 text-indigo-300 text-xs flex items-center justify-between shadow-lg animate-fadeIn">
+      <div class="flex items-center space-x-2">
+        <span class="text-base">🧠</span>
+        <span id="learningPillText" class="font-medium">Bot Learned New Trait</span>
+      </div>
+      <button onclick="openMemoryModal()" class="text-[10px] font-bold text-indigo-400 hover:text-white underline">Inspect Vault</button>
+    </div>
+
+    <!-- Bottom Input Bar -->
+    <div class="p-3 sm:p-4 bg-slate-950 border-t border-slate-800 shrink-0">
+      <form id="chatForm" onsubmit="handleFormSubmit(event)" class="flex items-center space-x-2">
+        <div class="relative flex-1">
+          <input 
+            type="text" 
+            id="chatInput" 
+            placeholder="Ask anything (e.g. 'When will my runway run out?', 'Compare Food vs Transport', 'Log ₹150 for dinner', 'I am saving for an iPad')..." 
+            class="w-full pl-4 pr-10 py-3 rounded-xl bg-slate-900 border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-white text-xs sm:text-sm placeholder-slate-500 outline-none transition"
+            autocomplete="off"
+          />
+          <button 
+            type="button" 
+            onclick="clearInput()" 
+            id="clearInputBtn" 
+            class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 text-xs"
+          >✕</button>
+        </div>
+
+        <button 
+          type="submit" 
+          id="sendBtn"
+          class="px-4 sm:px-5 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs sm:text-sm font-semibold shadow-md transition flex items-center space-x-1.5 shrink-0"
+        >
+          <span>Send</span>
+          <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+        </button>
+      </form>
+      <div class="flex items-center justify-between mt-2 text-[10px] text-slate-500 px-1">
+        <span>Powered by SFI Cognitive Telemetry & Dynamic Student Memory</span>
+        <button onclick="openMemoryModal()" class="hover:text-slate-400 transition underline">View Memory Vault ({{ solved_count }} Solved)</button>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- ================================================================= -->
+<!-- AI MEMORY VAULT MODAL (INSPECT & CONTROL WHAT THE BOT HAS LEARNED) -->
+<!-- ================================================================= -->
+<div id="memoryModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
+  <div class="w-full max-w-lg rounded-3xl bg-slate-900 border border-slate-800 p-6 shadow-2xl relative">
+    
+    <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-4">
+      <div class="flex items-center space-x-2.5">
+        <div class="w-8 h-8 rounded-lg bg-indigo-600/20 text-indigo-400 flex items-center justify-center text-lg font-bold">
+          🧠
+        </div>
+        <div>
+          <h3 class="text-base font-bold text-white">SpendWise AI Memory Vault</h3>
+          <p class="text-[11px] text-slate-400">Autonomous profile learned from queries & transactions</p>
+        </div>
+      </div>
+      <button onclick="closeMemoryModal()" class="text-slate-400 hover:text-white text-lg">✕</button>
+    </div>
+
+    <!-- Active Traits List -->
+    <div id="memoryTraitsContainer" class="space-y-2.5 max-h-72 overflow-y-auto pr-1 text-xs">
+      {% for m in memory_list %}
+      <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between">
+        <div>
+          <p class="text-[10px] font-bold text-indigo-400 uppercase tracking-wider">{{ m.memory_key.replace('_', ' ') }}</p>
+          <p class="text-xs text-white font-medium mt-0.5">{{ m.memory_value }}</p>
+        </div>
+        <div class="text-right shrink-0">
+          <span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700/60 font-mono">{{ "{:.0%}".format(m.confidence or 1.0) }} Conf.</span>
+          <p class="text-[9px] text-slate-500 mt-0.5">{{ m.updated_at[:10] if m.updated_at else '' }}</p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Modal Footer Controls -->
+    <div class="flex items-center justify-between pt-4 mt-4 border-t border-slate-800 text-xs">
+      <button onclick="resetMemoryVault()" class="px-3 py-1.5 rounded-lg bg-rose-950/40 hover:bg-rose-900/60 border border-rose-500/30 text-rose-300 font-medium transition">
+        Reset Memory Vault
+      </button>
+      <button onclick="closeMemoryModal()" class="px-4 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-semibold transition">
+        Done
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ================================================================= -->
+<!-- GOOGLE GEMINI API CONFIGURATION MODAL                             -->
+<!-- ================================================================= -->
+<div id="geminiModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
+  <div class="w-full max-w-md rounded-3xl bg-slate-900 border border-indigo-500/40 p-6 shadow-2xl relative">
+    
+    <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-4">
+      <div class="flex items-center space-x-2.5">
+        <div class="w-8 h-8 rounded-lg bg-indigo-600/20 text-indigo-400 flex items-center justify-center text-lg font-bold">
+          ✨
+        </div>
+        <div>
+          <h3 class="text-base font-bold text-white">Google Gemini API</h3>
+          <p class="text-[11px] text-slate-400">Powered by <strong class="text-indigo-300">Google Gemini Flash</strong> via official SDK</p>
+        </div>
+      </div>
+      <button onclick="closeGeminiModal()" class="text-slate-400 hover:text-white text-lg">✕</button>
+    </div>
+
+    <div class="space-y-4 text-xs">
+      <div class="p-3 rounded-xl bg-slate-950 border border-slate-800">
+        <div class="flex items-center justify-between text-[11px] mb-1">
+          <span class="text-slate-400">Current Provider:</span>
+          <span class="font-bold text-indigo-400 font-mono" id="geminiCurrentProvider">{{ gemini_status.provider }}</span>
+        </div>
+        <div class="flex items-center justify-between text-[11px]">
+          <span class="text-slate-400">Key Status:</span>
+          <span class="font-bold {% if gemini_status.has_key %}text-emerald-400{% else %}text-amber-400{% endif %} font-mono" id="geminiCurrentKeyMask">
+            {{ gemini_status.masked_key }}
+          </span>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-300 mb-1">Google AI Studio API Key</label>
+        <input 
+          type="password" 
+          id="geminiApiKeyInput" 
+          placeholder="Enter AIzaSy... or paste key here" 
+          class="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs font-mono focus:border-indigo-500 focus:outline-none"
+        />
+        <p class="text-[10px] text-slate-500 mt-1">
+          Get a free Gemini API key from <a href="https://aistudio.google.com/apikey" target="_blank" class="text-indigo-400 underline">Google AI Studio</a>.
+        </p>
+      </div>
+
+      <div id="geminiKeyFeedback" class="hidden p-2.5 rounded-xl text-[11px]"></div>
+
+      <div class="flex items-center justify-between pt-2 border-t border-slate-800">
+        <button type="button" onclick="clearGeminiKey()" class="text-rose-400 hover:text-rose-300 transition text-[11px]">
+          Disconnect Key
+        </button>
+        <div class="flex items-center space-x-2">
+          <button type="button" onclick="closeGeminiModal()" class="px-3 py-2 rounded-xl text-slate-400 hover:text-white transition">Close</button>
+          <button type="button" onclick="saveGeminiKey()" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold shadow-md transition">Save & Activate</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================= -->
+<!-- JAVASCRIPT CONVERSATIONAL ENGINE & LIVE SFI TELEMETRY              -->
+<!-- ================================================================= -->
+<script>
+  const chatMessages = document.getElementById('chatMessages');
+  const chatForm = document.getElementById('chatForm');
+  const chatInput = document.getElementById('chatInput');
+  const typingIndicator = document.getElementById('typingIndicator');
+  const learningPill = document.getElementById('learningPill');
+  const learningPillText = document.getElementById('learningPillText');
+  const hudSolvedCount = document.getElementById('hudSolvedCount');
+
+  // Auto-scroll chat to bottom on load
+  function scrollToBottom() {
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+  scrollToBottom();
+
+  // Clear input helper
+  function clearInput() {
+    chatInput.value = '';
+    chatInput.focus();
+  }
+
+  // Quick prompt chip sender
+  function sendQuickPrompt(promptText) {
+    chatInput.value = promptText;
+    submitQuery(promptText);
+  }
+
+  function handleSuggestedAction(rawAction) {
+    if (!rawAction) return;
+    let action = String(rawAction).trim();
+    if (action.startsWith("'") && action.endsWith("'")) {
+      action = action.substring(1, action.length - 1).trim();
+    }
+    if (action.startsWith("query('") && action.endsWith("')")) {
+      submitQuery(action.substring(7, action.length - 2));
+      return;
+    }
+    if (action.startsWith('query("') && action.endsWith('")')) {
+      submitQuery(action.substring(7, action.length - 2));
+      return;
+    }
+    if (action.includes("clearMemory()")) {
+      resetMemoryVault();
+      return;
+    }
+    if (action.startsWith("window.location")) {
+      eval(action);
+      return;
+    }
+    submitQuery(action);
+  }
+
+  function handleFormSubmit(e) {
+    e.preventDefault();
+    const query = chatInput.value.trim();
+    if (!query) return;
+    submitQuery(query);
+  }
+
+  // Master Query Dispatcher
+  async function submitQuery(queryText) {
+    chatInput.value = '';
+    
+    // 1. Render User Bubble
+    appendUserBubble(queryText);
+    scrollToBottom();
+
+    // 2. Show Typing Indicator
+    typingIndicator.classList.remove('hidden');
+    scrollToBottom();
+
+    try {
+      const response = await fetch('/api/chat/query', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: queryText })
+      });
+
+      const data = await response.json();
+      typingIndicator.classList.add('hidden');
+
+      if (data.error) {
+        appendBotBubble("⚠️ " + data.error);
+      } else {
+        // Render Bot response
+        appendBotBubble(data.answer, data.data_card, data.suggested_actions, data.learning_badge, data.is_gemini);
+        
+        // Update live memory badges if adapted
+        if (data.learning_badge) {
+          showLearningPill(data.learning_badge.text || "🧠 Memory Profile Adapted");
+        }
+        if (data.solved_count) {
+          hudSolvedCount.innerText = data.solved_count;
+        }
+      }
+    } catch (err) {
+      typingIndicator.classList.add('hidden');
+      appendBotBubble("⚠️ Failed to connect to SpendWise Assistant. Please try again.");
+    }
+    scrollToBottom();
+  }
+
+  // Render User Message Bubble
+  function appendUserBubble(text) {
+    const div = document.createElement('div');
+    div.className = 'flex items-start justify-end space-x-3';
+    div.innerHTML = `
+      <div class="user-bubble max-w-2xl bg-indigo-600 text-white p-3.5 sm:p-4 rounded-2xl rounded-tr-none shadow-sm text-sm leading-relaxed">
+        <p class="whitespace-pre-wrap">${escapeHtml(text)}</p>
+      </div>
+      <div class="w-8 h-8 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 flex items-center justify-center text-sm shrink-0 font-bold">
+        {{ user.avatar or '🎓' }}
+      </div>
+    `;
+    chatMessages.appendChild(div);
+  }
+
+  // Render Bot Message Bubble
+  function appendBotBubble(answerText, dataCard, actions, learningBadge, isGemini) {
+    const div = document.createElement('div');
+    div.className = 'flex items-start space-x-3 max-w-3xl animate-fadeIn';
+    
+    let cardHtml = '';
+    if (dataCard) {
+      cardHtml = renderDataCardHtml(dataCard);
+    }
+
+    let actionsHtml = '';
+    if (actions && actions.length > 0) {
+      actionsHtml = `
+        <div class="flex flex-wrap gap-1.5 pt-1">
+          ${actions.map(act => {
+            const label = (typeof act === 'object' && act !== null) ? (act.label || act.action || '') : act;
+            const actionCmd = (typeof act === 'object' && act !== null) ? (act.action || act.label || '') : act;
+            return `
+            <button onclick="handleSuggestedAction('${escapeHtml(actionCmd)}')" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700/80 text-indigo-300 hover:text-white text-[11px] font-medium transition flex items-center space-x-1">
+              <span>👉</span>
+              <span>${escapeHtml(label)}</span>
+            </button>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+
+    let badgeHtml = '';
+    if (learningBadge && learningBadge.text) {
+      badgeHtml = `
+        <div class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-500/15 border border-indigo-500/25 text-indigo-300 mt-2">
+          <span>${escapeHtml(learningBadge.text)}</span>
+        </div>
+      `;
+    }
+
+    const isGeminiLive = Boolean(isGemini);
+    const botAvatar = isGeminiLive ? '✨' : '🤖';
+    const avatarBg = isGeminiLive ? 'bg-gradient-to-tr from-indigo-500 via-purple-600 to-pink-500 ring-2 ring-indigo-400/40 shadow-indigo-500/20' : 'bg-indigo-600';
+    const providerTitle = isGeminiLive ? 'Google Gemini Live LLM' : 'SpendWise SFI Intelligence';
+    const providerTag = isGeminiLive 
+      ? '<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/40">✨ Gemini Live LLM</span>'
+      : '<span class="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-slate-800 text-slate-400 border border-slate-700">Autonomous SFI Engine</span>';
+
+    div.innerHTML = `
+      <div class="w-8 h-8 rounded-xl ${avatarBg} text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-sm">
+        ${botAvatar}
+      </div>
+      <div class="flex-1 space-y-2">
+        <div class="p-4 rounded-2xl rounded-tl-none bg-slate-950 border border-slate-800 text-slate-200 text-sm leading-relaxed shadow-sm">
+          <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-800/80">
+            <div class="flex items-center space-x-2">
+              <span class="text-xs font-bold text-indigo-400">${providerTitle}</span>
+              ${providerTag}
+            </div>
+            <span class="text-[10px] text-slate-500 font-mono">{{ today_dmy }}</span>
+          </div>
+          <div class="prose prose-invert text-sm max-w-none space-y-2 leading-relaxed">${formatMarkdownText(answerText)}</div>
+          ${cardHtml}
+          ${badgeHtml}
+        </div>
+        ${actionsHtml}
+      </div>
+    `;
+    chatMessages.appendChild(div);
+  }
+
+  // Render Structured Data Cards in Real-time
+  function renderDataCardHtml(card) {
+    if (card.metrics && Array.isArray(card.metrics) && card.metrics.length > 0) {
+      return `
+        <div class="mt-3 p-3 rounded-xl bg-slate-900 border border-slate-800 text-xs">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-2 mb-2">
+            <span class="font-bold text-indigo-400">${escapeHtml(card.title || 'Financial Telemetry')}</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">✨ Gemini Live</span>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
+            ${card.metrics.map(m => `
+              <div class="p-2 rounded-lg bg-slate-950 border border-slate-800/80">
+                <p class="text-slate-400 text-[10px]">${escapeHtml(m.label)}</p>
+                <p class="font-bold text-white font-mono mt-0.5 text-xs">${escapeHtml(m.value)}</p>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+    if (card.type === 'runway_telemetry') {
+      return `
+        <div class="mt-3 p-3 rounded-xl bg-slate-900 border border-slate-800 text-xs">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-2 mb-2">
+            <span class="font-bold text-indigo-400">${escapeHtml(card.title)}</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">${escapeHtml(card.status)}</span>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
+            <div>
+              <p class="text-slate-500 text-[10px]">Depletion Date</p>
+              <p class="font-bold text-white font-mono">${escapeHtml(card.depletion_date)}</p>
+            </div>
+            <div>
+              <p class="text-slate-500 text-[10px]">Daily Burn</p>
+              <p class="font-bold text-amber-300 font-mono">${escapeHtml(card.daily_burn)}</p>
+            </div>
+            <div>
+              <p class="text-slate-500 text-[10px]">Safe Spend</p>
+              <p class="font-bold text-emerald-400 font-mono">${escapeHtml(card.safe_daily)}</p>
+            </div>
+            <div>
+              <p class="text-slate-500 text-[10px]">Exam Buffer</p>
+              <p class="font-bold text-indigo-300 font-mono">${escapeHtml(card.exam_buffer)}</p>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+    if (card.type === 'category_bar') {
+      return `
+        <div class="mt-3 p-3 rounded-xl bg-slate-900 border border-slate-800 text-xs">
+          <div class="font-bold text-indigo-400 mb-2">${escapeHtml(card.title)}</div>
+          <div class="space-y-1.5">
+            <div>
+              <div class="flex justify-between text-[11px] mb-0.5">
+                <span class="text-slate-300">${escapeHtml(card.item_a.name)}</span>
+                <span class="font-mono text-white">₹${card.item_a.amount.toLocaleString('en-IN', {minimumFractionDigits: 2})} (${card.item_a.pct}%)</span>
+              </div>
+              <div class="w-full bg-slate-800 rounded-full h-2">
+                <div class="bg-indigo-500 h-2 rounded-full" style="width: ${Math.min(card.item_a.pct, 100)}%"></div>
+              </div>
+            </div>
+            <div>
+              <div class="flex justify-between text-[11px] mb-0.5">
+                <span class="text-slate-300">${escapeHtml(card.item_b.name)}</span>
+                <span class="font-mono text-white">₹${card.item_b.amount.toLocaleString('en-IN', {minimumFractionDigits: 2})} (${card.item_b.pct}%)</span>
+              </div>
+              <div class="w-full bg-slate-800 rounded-full h-2">
+                <div class="bg-emerald-500 h-2 rounded-full" style="width: ${Math.min(card.item_b.pct, 100)}%"></div>
+              </div>
+            </div>
+          </div>
+          <p class="mt-2 text-[10px] text-slate-400">Ratio: <strong class="text-white">${escapeHtml(card.ratio)}</strong> • Potential: <strong class="text-emerald-400">${escapeHtml(card.saving_potential)}</strong></p>
+        </div>
+      `;
+    }
+    if (card.type === 'surge_comparison') {
+      return `
+        <div class="mt-3 p-3 rounded-xl bg-slate-900 border border-slate-800 text-xs">
+          <div class="font-bold text-amber-400 mb-1">${escapeHtml(card.title)}</div>
+          <div class="grid grid-cols-2 gap-2 text-center my-2">
+            <div class="p-2 rounded bg-slate-950 border border-slate-800">
+              <p class="text-[10px] text-slate-400">Weekday Burn</p>
+              <p class="font-bold text-white font-mono">${escapeHtml(card.weekday_burn)}</p>
+            </div>
+            <div class="p-2 rounded bg-slate-950 border border-slate-800">
+              <p class="text-[10px] text-slate-400">Weekend Burn</p>
+              <p class="font-bold text-rose-400 font-mono">${escapeHtml(card.weekend_burn)}</p>
+            </div>
+          </div>
+          <p class="text-[10px] text-slate-400">Leakage: <strong class="text-white">${escapeHtml(card.monthly_leakage)}</strong> • Impact: <strong class="text-emerald-400">${escapeHtml(card.extension_impact)}</strong></p>
+        </div>
+      `;
+    }
+    if (card.type === 'mess_rebate_card') {
+      return `
+        <div class="mt-3 p-3 rounded-xl bg-slate-900 border border-slate-800 text-xs">
+          <div class="font-bold text-amber-400 mb-1">${escapeHtml(card.title)}</div>
+          <div class="grid grid-cols-2 gap-2 text-center my-1.5">
+            <div class="p-2 rounded bg-slate-950 border border-slate-800">
+              <p class="text-[10px] text-slate-400">Meal Rebate Rate</p>
+              <p class="font-bold text-emerald-400 font-mono">${escapeHtml(card.rate_per_meal)}</p>
+            </div>
+            <div class="p-2 rounded bg-slate-950 border border-slate-800">
+              <p class="text-[10px] text-slate-400">Monthly Potential</p>
+              <p class="font-bold text-emerald-400 font-mono">${escapeHtml(card.est_monthly_saving)}</p>
+            </div>
+          </div>
+          <p class="text-[10px] text-slate-400 font-medium">Impact: <span class="text-indigo-300">${escapeHtml(card.benefit_to_goal)}</span></p>
+        </div>
+      `;
+    }
+
+    return `
+      <div class="mt-3 p-3 rounded-xl bg-slate-900 border border-slate-800 text-xs">
+        <div class="font-bold text-slate-200 mb-1">${escapeHtml(card.title || 'SFI Intelligence')}</div>
+        <p class="text-slate-400 text-[11px]">${escapeHtml(card.insight || card.key_takeaway || 'Telemetry verified')}</p>
+      </div>
+    `;
+  }
+
+  // Lightweight markdown formatter for chat bubbles
+  function formatMarkdownText(text) {
+    if (!text) return '';
+    let escaped = escapeHtml(text);
+    // Bold
+    escaped = escaped.replace(/\*\*(.*?)\*\*/g, '<strong class="text-white font-semibold">$1</strong>');
+    // Italics
+    escaped = escaped.replace(/\*(.*?)\*/g, '<em class="text-slate-300">$1</em>');
+    // Bullet points
+    escaped = escaped.replace(/^• (.*?)$/gm, '<li class="ml-4 list-disc">$1</li>');
+    // Line breaks
+    escaped = escaped.replace(/\n/g, '<br>');
+    return escaped;
+  }
+
+  function escapeHtml(unsafe) {
+    if (!unsafe) return '';
+    return String(unsafe)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  function showLearningPill(text) {
+    learningPillText.innerText = text;
+    learningPill.classList.remove('hidden');
+    setTimeout(() => {
+      learningPill.classList.add('hidden');
+    }, 6000);
+  }
+
+
+  // Memory Vault Modal Handlers
+  function openMemoryModal() {
+    refreshMemoryVaultModal();
+    document.getElementById('memoryModal').classList.remove('hidden');
+  }
+
+  function closeMemoryModal() {
+    document.getElementById('memoryModal').classList.add('hidden');
+  }
+
+  async function refreshMemoryVaultModal() {
+    try {
+      const res = await fetch('/api/chat/memory');
+      const data = await res.json();
+      const container = document.getElementById('memoryTraitsContainer');
+      if (data.memory_list && data.memory_list.length > 0) {
+        container.innerHTML = data.memory_list.map(m => `
+          <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between">
+            <div>
+              <p class="text-[10px] font-bold text-indigo-400 uppercase tracking-wider">${escapeHtml(m.memory_key.replace(/_/g, ' '))}</p>
+              <p class="text-xs text-white font-medium mt-0.5">${escapeHtml(m.memory_value)}</p>
+            </div>
+            <div class="text-right shrink-0">
+              <span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700/60 font-mono">${Math.round((m.confidence || 1.0) * 100)}% Conf.</span>
+            </div>
+          </div>
+        `).join('');
+      }
+      if (data.solved_count) {
+        hudSolvedCount.innerText = data.solved_count;
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  async function resetMemoryVault() {
+    if (!confirm("Are you sure you want to reset the AI memory vault back to baseline?")) return;
+    try {
+      const res = await fetch('/api/chat/clear-memory', { method: 'POST' });
+      const data = await res.json();
+      alert(data.message || "Memory reset successfully.");
+      refreshMemoryVaultModal();
+      hudSolvedCount.innerText = "0";
+    } catch (e) {
+      alert("Failed to reset memory.");
+    }
+  }
+
+  // Gemini Configuration Modal Handlers
+  function openGeminiModal() {
+    document.getElementById('geminiModal').classList.remove('hidden');
+    refreshGeminiStatus();
+  }
+
+  function closeGeminiModal() {
+    document.getElementById('geminiModal').classList.add('hidden');
+    const feedback = document.getElementById('geminiKeyFeedback');
+    if (feedback) feedback.classList.add('hidden');
+  }
+
+  async function refreshGeminiStatus() {
+    try {
+      const res = await fetch('/api/chat/gemini-status');
+      const st = await res.json();
+      updateGeminiUI(st);
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  function updateGeminiUI(st) {
+    const providerEl = document.getElementById('geminiCurrentProvider');
+    const keyMaskEl = document.getElementById('geminiCurrentKeyMask');
+    const hudSubtext = document.getElementById('geminiHudSubtext');
+    const hudPill = document.getElementById('geminiHudPill');
+
+    if (providerEl) providerEl.innerText = st.provider || (st.has_key ? 'Google Gemini 2.5 Flash' : 'SpendWise Autonomous Engine');
+    if (keyMaskEl) {
+      keyMaskEl.innerText = st.masked_key;
+      keyMaskEl.className = `font-bold ${st.has_key ? 'text-emerald-400' : 'text-amber-400'} font-mono`;
+    }
+    if (hudSubtext) {
+      hudSubtext.innerText = st.has_key ? 'Active LLM' : 'Setup API Key';
+    }
+    if (hudPill) {
+      if (st.has_key) {
+        hudPill.className = "px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-indigo-950/60 to-purple-950/60 border border-indigo-500/40 text-center shrink-0 cursor-pointer transition";
+      } else {
+        hudPill.className = "px-2.5 py-1.5 rounded-xl bg-slate-950 border border-slate-800 hover:border-indigo-500/60 text-center shrink-0 cursor-pointer transition";
+      }
+    }
+  }
+
+  async function saveGeminiKey() {
+    const input = document.getElementById('geminiApiKeyInput');
+    const key = (input.value || '').trim();
+    const feedback = document.getElementById('geminiKeyFeedback');
+    
+    if (!key) {
+      if (feedback) {
+        feedback.className = "p-2.5 rounded-xl text-[11px] bg-amber-500/10 border border-amber-500/20 text-amber-300 block";
+        feedback.innerText = "Please enter an API key or click Disconnect.";
+      }
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/chat/set-gemini-key', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ api_key: key })
+      });
+      const data = await res.json();
+      if (feedback) {
+        if (data.success) {
+          feedback.className = "p-2.5 rounded-xl text-[11px] bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 block";
+          feedback.innerText = data.message;
+          input.value = '';
+          updateGeminiUI(data.status);
+          setTimeout(() => closeGeminiModal(), 1200);
+        } else {
+          feedback.className = "p-2.5 rounded-xl text-[11px] bg-rose-500/10 border border-rose-500/20 text-rose-300 block";
+          feedback.innerText = data.message || "Failed to configure key.";
+        }
+      }
+    } catch (e) {
+      if (feedback) {
+        feedback.className = "p-2.5 rounded-xl text-[11px] bg-rose-500/10 border border-rose-500/20 text-rose-300 block";
+        feedback.innerText = "Error connecting to server.";
+      }
+    }
+  }
+
+  async function clearGeminiKey() {
+    const feedback = document.getElementById('geminiKeyFeedback');
+    try {
+      const res = await fetch('/api/chat/set-gemini-key', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ api_key: '' })
+      });
+      const data = await res.json();
+      if (feedback) {
+        feedback.className = "p-2.5 rounded-xl text-[11px] bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 block";
+        feedback.innerText = data.message;
+      }
+      const keyInput = document.getElementById('geminiApiKeyInput');
+      if (keyInput) keyInput.value = '';
+      updateGeminiUI(data.status);
+      setTimeout(() => closeGeminiModal(), 1200);
+    } catch (e) {
+      alert("Error clearing key.");
+    }
+  }
+</script>
+
+{% endblock %}

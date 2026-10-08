@@ -1,0 +1,716 @@
+{% extends "base.html" %}
+
+{% block title %}SPENDWISE — Student Payment Gateway & Category Checkout (₹ INR){% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+
+  <!-- ================================================================= -->
+  <!-- BREADCRUMB & HEADER                                               -->
+  <!-- ================================================================= -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-800">
+    <div>
+      <div class="flex items-center space-x-2 text-xs text-indigo-400 font-semibold mb-1">
+        <a href="/" class="hover:underline">Dashboard</a>
+        <span>/</span>
+        <span class="text-slate-400">Campus Payment Gateway</span>
+        <span>/</span>
+        <span class="text-emerald-400">₹ INR Secure Checkout</span>
+      </div>
+      <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight flex items-center space-x-3">
+        <span>💳 Campus Payment Gateway</span>
+        <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center space-x-1">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span>Live SFI Active</span>
+        </span>
+      </h1>
+      <p class="text-sm text-slate-400 mt-1">
+        Simulate real-world campus payments with live category selection, real-time budget guardrail warnings, and automatic spare-change roundups.
+      </p>
+    </div>
+
+    <!-- Student Telemetry Snapshot -->
+    <div class="flex items-center space-x-3 bg-slate-900/80 border border-slate-800 p-3 rounded-2xl shrink-0">
+      <div class="text-center px-2">
+        <p class="text-[10px] text-slate-400 uppercase font-semibold">Runway</p>
+        <p class="text-base font-extrabold text-white font-mono">{{ cockpit.runway_days }} Days</p>
+      </div>
+      <div class="h-8 w-px bg-slate-800"></div>
+      <div class="text-center px-2">
+        <p class="text-[10px] text-slate-400 uppercase font-semibold">Safe Spend</p>
+        <p class="text-base font-extrabold text-emerald-400 font-mono">₹{{ "{:,.0f}".format(cockpit.safe_daily_spend) }}/d</p>
+      </div>
+      <div class="h-8 w-px bg-slate-800"></div>
+      <div class="text-center px-2">
+        <p class="text-[10px] text-slate-400 uppercase font-semibold">Daily Burn</p>
+        <p class="text-base font-extrabold text-indigo-400 font-mono">₹{{ "{:,.0f}".format(cockpit.daily_burn_rate) }}/d</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================================= -->
+  <!-- MAIN PAYMENT GATEWAY LAYOUT                                       -->
+  <!-- ================================================================= -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mt-8">
+
+    <!-- LEFT COLUMN: PAYMENT FORM & CATEGORY SELECTOR (7 Cols) -->
+    <div class="lg:col-span-7 space-y-6">
+
+      <!-- Merchant Presets Bar -->
+      <div class="glass-card rounded-2xl p-4 bg-slate-900 border border-slate-800">
+        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2.5 flex items-center space-x-1.5">
+          <span>⚡ Quick Campus Presets:</span>
+        </p>
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+          <button type="button" onclick="selectPreset('Campus Canteen Lunch', 120, 'Food')" class="p-2.5 rounded-xl bg-slate-950 hover:bg-slate-800/80 border border-slate-800 text-left transition hover:border-indigo-500/50">
+            <p class="font-bold text-white flex items-center space-x-1"><span>🥪</span><span>Canteen Lunch</span></p>
+            <p class="text-[10px] text-slate-400 mt-0.5 font-mono">₹120 • Food</p>
+          </button>
+          <button type="button" onclick="selectPreset('Namma Metro Smartcard Recharge', 250, 'Transport')" class="p-2.5 rounded-xl bg-slate-950 hover:bg-slate-800/80 border border-slate-800 text-left transition hover:border-indigo-500/50">
+            <p class="font-bold text-white flex items-center space-x-1"><span>🚇</span><span>Metro Pass</span></p>
+            <p class="text-[10px] text-slate-400 mt-0.5 font-mono">₹250 • Transport</p>
+          </button>
+          <button type="button" onclick="selectPreset('College Bookstore & Stationary', 380, 'Education')" class="p-2.5 rounded-xl bg-slate-950 hover:bg-slate-800/80 border border-slate-800 text-left transition hover:border-indigo-500/50">
+            <p class="font-bold text-white flex items-center space-x-1"><span>📚</span><span>Bookstore</span></p>
+            <p class="text-[10px] text-slate-400 mt-0.5 font-mono">₹380 • Education</p>
+          </button>
+          <button type="button" onclick="selectPreset('Hostel Mess Dining Dues', 3200, 'Food')" class="p-2.5 rounded-xl bg-slate-950 hover:bg-slate-800/80 border border-slate-800 text-left transition hover:border-indigo-500/50">
+            <p class="font-bold text-white flex items-center space-x-1"><span>🍛</span><span>Hostel Mess</span></p>
+            <p class="text-[10px] text-slate-400 mt-0.5 font-mono">₹3,200 • Food</p>
+          </button>
+          <button type="button" onclick="selectPreset('Jio Campus 5G Unlimited', 299, 'Bills')" class="p-2.5 rounded-xl bg-slate-950 hover:bg-slate-800/80 border border-slate-800 text-left transition hover:border-indigo-500/50">
+            <p class="font-bold text-white flex items-center space-x-1"><span>📱</span><span>Jio 5G Pack</span></p>
+            <p class="text-[10px] text-slate-400 mt-0.5 font-mono">₹299 • Bills</p>
+          </button>
+          <button type="button" onclick="selectPreset('Weekend Movie & Snacks', 450, 'Entertainment')" class="p-2.5 rounded-xl bg-slate-950 hover:bg-slate-800/80 border border-slate-800 text-left transition hover:border-indigo-500/50">
+            <p class="font-bold text-white flex items-center space-x-1"><span>🎬</span><span>Weekend Movie</span></p>
+            <p class="text-[10px] text-slate-400 mt-0.5 font-mono">₹450 • Ent.</p>
+          </button>
+        </div>
+      </div>
+
+      <!-- Core Payment Form Card -->
+      <div class="glass-card rounded-2xl p-6 bg-slate-900 border border-slate-800 shadow-xl relative">
+        <form id="paymentGatewayForm" onsubmit="handlePaymentSubmit(event)" class="space-y-6">
+          
+          <!-- Payee / Merchant Name -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">
+              Merchant / Payee Title <span class="text-rose-400">*</span>
+            </label>
+            <div class="relative">
+              <input 
+                type="text" 
+                id="merchantInput" 
+                required 
+                placeholder="e.g., Campus Canteen, Swiggy, Namma Metro, Tuition"
+                class="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-700 text-white font-medium text-sm focus:border-indigo-500 focus:outline-none transition shadow-inner"
+              />
+              <span class="absolute right-3.5 top-3.5 text-slate-500 text-sm">🏪</span>
+            </div>
+          </div>
+
+          <!-- Amount (₹ INR) & Quick Amount Chips -->
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <label class="text-xs font-semibold text-slate-300">
+                Payment Amount (₹ INR) <span class="text-rose-400">*</span>
+              </label>
+              <span class="text-[10px] text-slate-500">Auto-formatted in Indian Rupees</span>
+            </div>
+            <div class="relative">
+              <span class="absolute left-4 top-3 text-lg font-bold text-indigo-400 font-mono">₹</span>
+              <input 
+                type="number" 
+                id="amountInput" 
+                step="0.01" 
+                min="1" 
+                required 
+                placeholder="0.00"
+                oninput="onAmountOrCategoryChanged()"
+                class="w-full pl-9 pr-4 py-3 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono font-extrabold text-xl focus:border-indigo-500 focus:outline-none transition shadow-inner"
+              />
+            </div>
+            
+            <!-- Quick Denomination Chips -->
+            <div class="flex flex-wrap gap-1.5 mt-2">
+              <button type="button" onclick="setAmount(50)" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-mono font-semibold text-slate-300 transition">₹50</button>
+              <button type="button" onclick="setAmount(100)" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-mono font-semibold text-slate-300 transition">₹100</button>
+              <button type="button" onclick="setAmount(250)" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-mono font-semibold text-slate-300 transition">₹250</button>
+              <button type="button" onclick="setAmount(500)" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-mono font-semibold text-slate-300 transition">₹500</button>
+              <button type="button" onclick="setAmount(1200)" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-mono font-semibold text-slate-300 transition">₹1,200</button>
+              <button type="button" onclick="setAmount(3200)" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-mono font-semibold text-slate-300 transition">₹3,200</button>
+            </div>
+          </div>
+
+          <!-- ========================================================= -->
+          <!-- CRITICAL FEATURE: SELECT THE CATEGORY                     -->
+          <!-- ========================================================= -->
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <label class="text-xs font-semibold text-slate-300 flex items-center space-x-1.5">
+                <span>🏷️ Select Expense Category</span>
+                <span class="text-rose-400">*</span>
+              </label>
+              <span class="text-[11px] text-indigo-400 font-medium" id="activeCategoryName">Selected: Food</span>
+            </div>
+            
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              {% for c in categories %}
+              <div 
+                onclick="selectCategory('{{ c.name }}')" 
+                id="cat-card-{{ c.name }}"
+                class="category-option-card cursor-pointer p-3 rounded-xl border text-center transition select-none {% if c.name == 'Food' %}border-indigo-500 bg-indigo-950/40 text-white ring-2 ring-indigo-500/30{% else %}border-slate-800 bg-slate-950 hover:bg-slate-800/60 text-slate-300{% endif %}"
+              >
+                <div class="text-2xl mb-1">{{ c.icon }}</div>
+                <div class="font-bold text-xs truncate">{{ c.name }}</div>
+                <div class="text-[10px] text-slate-500 font-mono mt-0.5">
+                  {% if c.monthly_limit > 0 %}
+                    Limit: ₹{{ "{:,.0f}".format(c.monthly_limit) }}
+                  {% else %}
+                    No Cap
+                  {% endif %}
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+            <input type="hidden" id="selectedCategoryInput" value="Food" />
+          </div>
+
+          <!-- ========================================================= -->
+          <!-- REAL-TIME BUDGET GUARDRAIL TELEMETRY & WARNING BANNER     -->
+          <!-- ========================================================= -->
+          <div id="budgetWarningBanner" class="hidden p-4 rounded-2xl bg-amber-950/50 border-2 border-amber-500/60 text-amber-200 animate-fadeIn">
+            <div class="flex items-start space-x-3">
+              <span class="text-2xl shrink-0">⚠️</span>
+              <div class="flex-1 text-xs">
+                <p class="font-extrabold text-sm text-amber-300 tracking-tight">
+                  you are about to cross your monthly limit for this catagory!
+                </p>
+                <p class="text-amber-200/90 mt-1 leading-relaxed" id="budgetWarningDetail">
+                  This transaction will exceed your allocated budget for <strong class="text-white" id="warningCategoryName">Food</strong>. (The transaction will proceed normally and won't be declined).
+                </p>
+                <div class="mt-2 flex items-center space-x-4 text-[11px] font-mono">
+                  <span>Current Spent: <strong id="warningCurrentSpent" class="text-white">₹0.00</strong></span>
+                  <span>Monthly Limit: <strong id="warningLimit" class="text-white">₹0.00</strong></span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Normal Budget Health Progress Bar -->
+          <div id="budgetHealthCard" class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 text-xs space-y-1.5">
+            <div class="flex items-center justify-between text-[11px]">
+              <span class="text-slate-400 flex items-center space-x-1">
+                <span>📊 Budget Status:</span>
+                <strong class="text-white" id="healthCategoryLabel">Food</strong>
+              </span>
+              <span class="font-mono text-slate-300" id="healthNumbers">₹0.00 / ₹0.00</span>
+            </div>
+            <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+              <div id="healthProgressBar" class="h-2 rounded-full transition-all duration-300 bg-indigo-500" style="width: 25%;"></div>
+            </div>
+            <p class="text-[10px] text-slate-500 text-right" id="healthRemainingText">Remaining: ₹0.00</p>
+          </div>
+
+          <!-- ========================================================= -->
+          <!-- PAYMENT METHODS TABS                                      -->
+          <!-- ========================================================= -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-2">
+              Payment Method <span class="text-rose-400">*</span>
+            </label>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
+              <button type="button" onclick="setPaymentMethod('UPI')" id="pm-tab-UPI" class="pm-tab p-2.5 rounded-xl border text-center text-xs font-semibold transition border-indigo-500 bg-indigo-950/40 text-white">
+                <span>📱 UPI / QR</span>
+              </button>
+              <button type="button" onclick="setPaymentMethod('Card')" id="pm-tab-Card" class="pm-tab p-2.5 rounded-xl border text-center text-xs font-semibold transition border-slate-800 bg-slate-950 text-slate-400 hover:text-white">
+                <span>💳 Card</span>
+              </button>
+              <button type="button" onclick="setPaymentMethod('NetBanking')" id="pm-tab-NetBanking" class="pm-tab p-2.5 rounded-xl border text-center text-xs font-semibold transition border-slate-800 bg-slate-950 text-slate-400 hover:text-white">
+                <span>🏦 NetBanking</span>
+              </button>
+              <button type="button" onclick="setPaymentMethod('Wallet')" id="pm-tab-Wallet" class="pm-tab p-2.5 rounded-xl border text-center text-xs font-semibold transition border-slate-800 bg-slate-950 text-slate-400 hover:text-white">
+                <span>🎒 Student Wallet</span>
+              </button>
+            </div>
+            <input type="hidden" id="selectedPaymentMethod" value="UPI" />
+
+            <!-- Sub-panel: UPI Method -->
+            <div id="panel-UPI" class="pm-panel p-4 rounded-xl bg-slate-950 border border-slate-800 text-xs space-y-3">
+              <div class="flex items-center space-x-3">
+                <input type="text" id="upiIdInput" placeholder="Enter UPI ID (e.g. 9876543210@paytm or student@okaxis)" value="{{ user.name.lower().replace(' ', '') }}@upi" class="flex-1 px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white font-mono text-xs focus:border-indigo-500 focus:outline-none" />
+                <span class="px-2 py-1 rounded bg-slate-800 text-slate-400 font-mono text-[10px]">Verified VPA</span>
+              </div>
+              <div class="flex items-center space-x-2 text-[11px] text-slate-400">
+                <span>Supported:</span>
+                <span class="px-1.5 py-0.5 rounded bg-slate-800 text-white font-bold">GPay</span>
+                <span class="px-1.5 py-0.5 rounded bg-slate-800 text-white font-bold">PhonePe</span>
+                <span class="px-1.5 py-0.5 rounded bg-slate-800 text-white font-bold">Paytm</span>
+                <span class="px-1.5 py-0.5 rounded bg-slate-800 text-white font-bold">BHIM</span>
+              </div>
+            </div>
+
+            <!-- Sub-panel: Card Method -->
+            <div id="panel-Card" class="pm-panel hidden p-4 rounded-xl bg-slate-950 border border-slate-800 text-xs space-y-3">
+              <div>
+                <input type="text" placeholder="Card Number (e.g. 4532 8901 2345 6789)" value="4532 •••• •••• 8821" class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white font-mono text-xs focus:border-indigo-500 focus:outline-none" />
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <input type="text" placeholder="MM / YY" value="08/29" class="px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white font-mono text-xs focus:border-indigo-500 focus:outline-none" />
+                <input type="password" placeholder="CVV" value="888" maxlength="3" class="px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white font-mono text-xs focus:border-indigo-500 focus:outline-none" />
+              </div>
+            </div>
+
+            <!-- Sub-panel: NetBanking Method -->
+            <div id="panel-NetBanking" class="pm-panel hidden p-4 rounded-xl bg-slate-950 border border-slate-800 text-xs space-y-2">
+              <label class="text-slate-400 text-[11px]">Select Your Bank</label>
+              <select class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white text-xs focus:border-indigo-500 focus:outline-none">
+                <option>State Bank of India (SBI)</option>
+                <option selected>HDFC Bank</option>
+                <option>ICICI Bank</option>
+                <option>Axis Bank</option>
+                <option>Canara Bank</option>
+                <option>Punjab National Bank</option>
+              </select>
+            </div>
+
+            <!-- Sub-panel: Student Wallet -->
+            <div id="panel-Wallet" class="pm-panel hidden p-4 rounded-xl bg-slate-950 border border-slate-800 text-xs flex items-center justify-between">
+              <div>
+                <p class="font-bold text-white">Campus Cash Balance</p>
+                <p class="text-[11px] text-slate-400">Linked to Student ID: <strong class="text-slate-200">{{ user.college_name }}</strong></p>
+              </div>
+              <div class="text-right font-mono">
+                <span class="text-xs text-emerald-400 font-extrabold">₹4,850.00 Available</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Auto-Roundup Toggle into Piggy Bank -->
+          <div class="p-3 rounded-xl bg-slate-950/80 border border-slate-800/80 flex items-center justify-between">
+            <div class="flex items-center space-x-2.5">
+              <span class="text-xl">🪙</span>
+              <div>
+                <p class="text-xs font-bold text-white">Auto Spare-Change Round-up</p>
+                <p class="text-[10px] text-slate-400">Rounds payment up to nearest ₹10 and deposits change into Piggy Vault</p>
+              </div>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="autoRoundupCheckbox" checked class="sr-only peer" onchange="onAmountOrCategoryChanged()">
+              <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
+            </label>
+          </div>
+
+          <!-- Submit Button -->
+          <button 
+            type="submit" 
+            id="paySubmitBtn"
+            class="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-indigo-600 hover:from-emerald-500 hover:to-indigo-500 text-white font-extrabold text-base shadow-lg shadow-emerald-500/20 transition flex items-center justify-center space-x-2 cursor-pointer active:scale-[0.99]"
+          >
+            <span>Authorize & Pay</span>
+            <span id="btnAmountText" class="font-mono">₹0.00</span>
+            <span>➔</span>
+          </button>
+
+          <p class="text-[10px] text-center text-slate-500">
+            🔒 256-bit Simulated SSL Gateway • Zero decline on budget warnings • Transactions logged in DD-MM-YYYY format
+          </p>
+
+        </form>
+      </div>
+
+    </div>
+
+    <!-- RIGHT COLUMN: LIVE QR CODE & TRANSACTION HISTORY (5 Cols) -->
+    <div class="lg:col-span-5 space-y-6">
+
+      <!-- Dynamic QR Code Card -->
+      <div class="glass-card rounded-2xl p-6 bg-slate-900 border border-slate-800 text-center shadow-xl">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-4 text-xs">
+          <span class="font-bold text-white flex items-center space-x-1.5">
+            <span>🔲</span>
+            <span>Scan & Pay via UPI</span>
+          </span>
+          <span class="px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-300 text-[10px] font-bold border border-indigo-500/20">All UPI Apps</span>
+        </div>
+
+        <!-- High-res QR Canvas Container -->
+        <div class="inline-block p-4 rounded-2xl bg-white border-4 border-indigo-600/30 shadow-md my-2">
+          <img 
+            id="dynamicQrImg" 
+            src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=upi%3A%2F%2Fpay%3Fpa%3Dcampus%40upi%26pn%3DSpendWise%26am%3D120%26cu%3DINR" 
+            alt="UPI QR Code" 
+            class="w-40 h-40 object-contain mx-auto"
+          />
+        </div>
+
+        <p class="text-xs font-bold text-white mt-2" id="qrMerchantText">Campus Canteen</p>
+        <p class="text-base font-extrabold text-emerald-400 font-mono" id="qrAmountText">₹120.00</p>
+        <p class="text-[11px] text-slate-400 mt-1">Open Google Pay, PhonePe, or Paytm to scan this QR code.</p>
+
+        <div class="mt-4 pt-4 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
+          <span>Virtual Payee Handle:</span>
+          <span class="font-mono text-indigo-300">spendwise.campus@upi</span>
+        </div>
+      </div>
+
+      <!-- Recent Payments Ledger Snapshot -->
+      <div class="glass-card rounded-2xl p-5 bg-slate-900 border border-slate-800">
+        <div class="flex items-center justify-between pb-2 mb-3 border-b border-slate-800">
+          <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center space-x-1.5">
+            <span>📜 Recent Payments</span>
+          </h3>
+          <a href="/" class="text-[11px] text-indigo-400 hover:underline">Full Ledger</a>
+        </div>
+
+        <div class="space-y-2.5" id="recentPaymentsList">
+          {% for tx in recent_txs %}
+          <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800/80 flex items-center justify-between text-xs">
+            <div class="flex items-center space-x-2.5">
+              <span class="text-base">{{ category_map.get(tx.category, {}).get('icon', '💳') }}</span>
+              <div>
+                <p class="font-semibold text-white leading-tight">{{ tx.description }}</p>
+                <p class="text-[10px] text-slate-500 font-mono mt-0.5">{{ tx.transaction_date }} • {{ tx.category }}</p>
+              </div>
+            </div>
+            <div class="text-right">
+              <p class="font-mono font-bold {% if tx.transaction_type == 'income' %}text-emerald-400{% else %}text-white{% endif %}">
+                {% if tx.transaction_type == 'income' %}+{% else %}-{% endif %}₹{{ "{:,.2f}".format(tx.amount) }}
+              </p>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<!-- ================================================================= -->
+<!-- PROCESSING MODAL (SIMULATING BANK / UPI AUTHORIZATION)            -->
+<!-- ================================================================= -->
+<div id="processingModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md">
+  <div class="w-full max-w-sm rounded-3xl bg-slate-900 border border-indigo-500/40 p-6 text-center shadow-2xl space-y-4">
+    <div class="w-16 h-16 rounded-2xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center mx-auto text-3xl font-bold border border-indigo-500/30">
+      <div class="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+    </div>
+    <div>
+      <h4 class="text-base font-bold text-white">Authorizing Payment...</h4>
+      <p class="text-xs text-slate-400 mt-1" id="processingStatusText">Contacting UPI / Banking Gateway</p>
+    </div>
+    <div class="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+      <div class="h-1.5 bg-gradient-to-r from-emerald-500 to-indigo-500 rounded-full animate-pulse w-3/4 mx-auto"></div>
+    </div>
+    <p class="text-[10px] text-slate-500">Please do not refresh or close this window.</p>
+  </div>
+</div>
+
+<!-- ================================================================= -->
+<!-- SUCCESS RECEIPT MODAL                                             -->
+<!-- ================================================================= -->
+<div id="successReceiptModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md">
+  <div class="w-full max-w-md rounded-3xl bg-slate-900 border border-emerald-500/50 p-6 shadow-2xl text-xs space-y-5 animate-fadeIn">
+    
+    <!-- Header -->
+    <div class="text-center space-y-2">
+      <div class="w-14 h-14 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto text-3xl border border-emerald-500/40">
+        ✓
+      </div>
+      <h3 class="text-lg font-extrabold text-white">Payment Authorized & Successful!</h3>
+      <p class="text-[11px] text-slate-400">Expense recorded into campus ledger with DD-MM-YYYY format</p>
+    </div>
+
+    <!-- Amount Badge -->
+    <div class="p-4 rounded-2xl bg-slate-950 border border-slate-800 text-center space-y-1">
+      <p class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Total Paid (₹ INR)</p>
+      <p class="text-3xl font-black text-white font-mono" id="receiptAmount">₹0.00</p>
+      <p class="text-[11px] text-emerald-400 font-medium" id="receiptRoundupNote">🪙 Spare change saved: ₹0.00</p>
+    </div>
+
+    <!-- Receipt Line Details -->
+    <div class="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800/80 space-y-2">
+      <div class="flex justify-between">
+        <span class="text-slate-400">Transaction ID</span>
+        <span class="font-mono text-white font-semibold" id="receiptTxnId">TXN-IN-...</span>
+      </div>
+      <div class="flex justify-between">
+        <span class="text-slate-400">Merchant / Payee</span>
+        <span class="font-semibold text-white" id="receiptMerchant">Campus Canteen</span>
+      </div>
+      <div class="flex justify-between">
+        <span class="text-slate-400">Category</span>
+        <span class="font-semibold text-indigo-300" id="receiptCategory">Food</span>
+      </div>
+      <div class="flex justify-between">
+        <span class="text-slate-400">Payment Date</span>
+        <span class="font-mono text-white font-semibold" id="receiptDate">{{ today_dmy }}</span>
+      </div>
+      <div class="flex justify-between">
+        <span class="text-slate-400">Payment Mode</span>
+        <span class="text-slate-200 font-semibold" id="receiptMode">UPI Instant Pay</span>
+      </div>
+    </div>
+
+    <!-- Budget Warning Badge in Receipt (If crossed) -->
+    <div id="receiptWarningBanner" class="hidden p-3 rounded-xl bg-amber-950/50 border border-amber-500/40 text-amber-300 text-[11px]">
+      ⚠️ <strong>Notice:</strong> you are about to cross your monthly limit for this catagory! (Payment was not declined).
+    </div>
+
+    <!-- Updated Runway Telemetry -->
+    <div class="p-3 rounded-xl bg-indigo-950/30 border border-indigo-500/30 flex items-center justify-between text-[11px]">
+      <span class="text-slate-300">Updated Runway Days Remaining:</span>
+      <span class="font-bold text-white font-mono" id="receiptRunwayDays">{{ cockpit.runway_days }} Days</span>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex items-center space-x-3 pt-2">
+      <button type="button" onclick="closeSuccessModal(true)" class="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold transition">
+        Make Another Payment
+      </button>
+      <a href="/" class="flex-1 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-center transition shadow-md">
+        Go to Dashboard
+      </a>
+    </div>
+
+  </div>
+</div>
+
+<!-- ================================================================= -->
+<!-- CLIENT-SIDE JAVASCRIPT ENGINE                                     -->
+<!-- ================================================================= -->
+<script>
+  // Categories budget cache
+  const categoriesData = {{ categories | tojson }};
+  const categoryBudgets = {};
+  categoriesData.forEach(c => {
+    categoryBudgets[c.name] = c;
+  });
+
+  let activeCategory = 'Food';
+  let activePaymentMethod = 'UPI';
+
+  // Preset Selector
+  function selectPreset(merchant, amount, category) {
+    document.getElementById('merchantInput').value = merchant;
+    document.getElementById('amountInput').value = amount;
+    selectCategory(category);
+    onAmountOrCategoryChanged();
+  }
+
+  // Denomination Setter
+  function setAmount(amt) {
+    document.getElementById('amountInput').value = amt;
+    onAmountOrCategoryChanged();
+  }
+
+  // Category Selection
+  function selectCategory(catName) {
+    activeCategory = catName;
+    document.getElementById('selectedCategoryInput').value = catName;
+    document.getElementById('activeCategoryName').innerText = `Selected: ${catName}`;
+
+    // Update active visual ring
+    document.querySelectorAll('.category-option-card').forEach(card => {
+      card.className = 'category-option-card cursor-pointer p-3 rounded-xl border text-center transition select-none border-slate-800 bg-slate-950 hover:bg-slate-800/60 text-slate-300';
+    });
+    const activeEl = document.getElementById(`cat-card-${catName}`);
+    if (activeEl) {
+      activeEl.className = 'category-option-card cursor-pointer p-3 rounded-xl border text-center transition select-none border-indigo-500 bg-indigo-950/40 text-white ring-2 ring-indigo-500/30';
+    }
+
+    onAmountOrCategoryChanged();
+  }
+
+  // Payment Method Selection
+  function setPaymentMethod(method) {
+    activePaymentMethod = method;
+    document.getElementById('selectedPaymentMethod').value = method;
+
+    document.querySelectorAll('.pm-tab').forEach(t => {
+      t.className = 'pm-tab p-2.5 rounded-xl border text-center text-xs font-semibold transition border-slate-800 bg-slate-950 text-slate-400 hover:text-white';
+    });
+    const activeTab = document.getElementById(`pm-tab-${method}`);
+    if (activeTab) {
+      activeTab.className = 'pm-tab p-2.5 rounded-xl border text-center text-xs font-semibold transition border-indigo-500 bg-indigo-950/40 text-white';
+    }
+
+    document.querySelectorAll('.pm-panel').forEach(p => p.classList.add('hidden'));
+    const activePanel = document.getElementById(`panel-${method}`);
+    if (activePanel) activePanel.classList.remove('hidden');
+  }
+
+  // Recalculate Live Budget & QR Code
+  async function onAmountOrCategoryChanged() {
+    const rawAmt = parseFloat(document.getElementById('amountInput').value) || 0;
+    const merchant = document.getElementById('merchantInput').value.trim() || 'Campus Expense';
+    
+    // Update Button Amount
+    document.getElementById('btnAmountText').innerText = `₹${rawAmt.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+
+    // Update Dynamic QR
+    const qrMerchant = document.getElementById('qrMerchantText');
+    const qrAmount = document.getElementById('qrAmountText');
+    const qrImg = document.getElementById('dynamicQrImg');
+    
+    if (qrMerchant) qrMerchant.innerText = merchant;
+    if (qrAmount) qrAmount.innerText = `₹${rawAmt.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+    
+    if (qrImg && rawAmt > 0) {
+      const upiUrl = `upi://pay?pa=spendwise.campus@upi&pn=${encodeURIComponent(merchant)}&am=${rawAmt.toFixed(2)}&cu=INR`;
+      qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(upiUrl)}`;
+    }
+
+    // Budget Guardrail Inspection
+    const catInfo = categoryBudgets[activeCategory] || { monthly_limit: 0, current_spent: 0 };
+    const limit = catInfo.monthly_limit || 0;
+    const spent = catInfo.current_spent || 0;
+    const newTotal = spent + rawAmt;
+
+    const warningBanner = document.getElementById('budgetWarningBanner');
+    const healthCard = document.getElementById('budgetHealthCard');
+    const healthCategoryLabel = document.getElementById('healthCategoryLabel');
+    const healthNumbers = document.getElementById('healthNumbers');
+    const healthProgressBar = document.getElementById('healthProgressBar');
+    const healthRemainingText = document.getElementById('healthRemainingText');
+
+    healthCategoryLabel.innerText = activeCategory;
+
+    if (limit > 0) {
+      healthNumbers.innerText = `₹${spent.toLocaleString('en-IN', {minimumFractionDigits: 2})} / ₹${limit.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+      const pct = Math.min(100, Math.round((newTotal / limit) * 100));
+      healthProgressBar.style.width = `${pct}%`;
+
+      if (newTotal > limit) {
+        // TRIGGER REQUESTED GUARDRAIL WARNING
+        warningBanner.classList.remove('hidden');
+        document.getElementById('warningCategoryName').innerText = activeCategory;
+        document.getElementById('warningCurrentSpent').innerText = `₹${spent.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+        document.getElementById('warningLimit').innerText = `₹${limit.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+        healthProgressBar.className = 'h-2 rounded-full transition-all duration-300 bg-amber-500';
+        healthRemainingText.innerText = `Exceeds cap by ₹${(newTotal - limit).toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+        healthRemainingText.className = 'text-[10px] text-amber-400 text-right font-bold';
+      } else {
+        warningBanner.classList.add('hidden');
+        healthProgressBar.className = 'h-2 rounded-full transition-all duration-300 bg-indigo-500';
+        healthRemainingText.innerText = `Remaining after payment: ₹${(limit - newTotal).toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+        healthRemainingText.className = 'text-[10px] text-slate-500 text-right';
+      }
+    } else {
+      warningBanner.classList.add('hidden');
+      healthNumbers.innerText = `₹${spent.toLocaleString('en-IN', {minimumFractionDigits: 2})} (No cap)`;
+      healthProgressBar.style.width = '15%';
+      healthProgressBar.className = 'h-2 rounded-full transition-all duration-300 bg-slate-600';
+      healthRemainingText.innerText = 'No monthly cap set for this category';
+      healthRemainingText.className = 'text-[10px] text-slate-500 text-right';
+    }
+  }
+
+  // Handle Form Submission
+  async function handlePaymentSubmit(e) {
+    e.preventDefault();
+
+    const merchant = document.getElementById('merchantInput').value.trim();
+    const amount = parseFloat(document.getElementById('amountInput').value) || 0;
+    const category = activeCategory;
+    const paymentMethod = activePaymentMethod;
+    const autoRoundup = document.getElementById('autoRoundupCheckbox').checked;
+
+    if (!merchant || amount <= 0) {
+      alert("Please specify a valid merchant and payment amount.");
+      return;
+    }
+
+    // 1. Show Processing Modal
+    const processingModal = document.getElementById('processingModal');
+    processingModal.classList.remove('hidden');
+
+    try {
+      const res = await fetch('/api/pay/process', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          merchant: merchant,
+          amount: amount,
+          category: category,
+          payment_method: paymentMethod,
+          auto_roundup: autoRoundup,
+        })
+      });
+
+      const data = await res.json();
+      
+      // Artificial delay for realistic gateway feel
+      setTimeout(() => {
+        processingModal.classList.add('hidden');
+
+        if (data.success) {
+          // Trigger Confetti!
+          if (typeof confetti === 'function') {
+            confetti({
+              particleCount: 80,
+              spread: 60,
+              origin: { y: 0.6 }
+            });
+          }
+
+          // Populate Receipt Modal
+          document.getElementById('receiptAmount').innerText = data.formatted_amount;
+          document.getElementById('receiptTxnId').innerText = data.txn_id;
+          document.getElementById('receiptMerchant').innerText = data.merchant;
+          document.getElementById('receiptCategory').innerText = data.category;
+          document.getElementById('receiptDate').innerText = data.date;
+          document.getElementById('receiptMode').innerText = data.payment_method;
+          document.getElementById('receiptRunwayDays').innerText = `${data.runway_days} Days`;
+
+          if (data.auto_roundup && data.roundup_saved > 0) {
+            document.getElementById('receiptRoundupNote').innerText = `🪙 Spare change saved: ₹${data.roundup_saved.toFixed(2)} into Piggy Bank`;
+            document.getElementById('receiptRoundupNote').classList.remove('hidden');
+          } else {
+            document.getElementById('receiptRoundupNote').classList.add('hidden');
+          }
+
+          if (data.budget_warning) {
+            document.getElementById('receiptWarningBanner').classList.remove('hidden');
+          } else {
+            document.getElementById('receiptWarningBanner').classList.add('hidden');
+          }
+
+          // Update local cache
+          if (categoryBudgets[category]) {
+            categoryBudgets[category].current_spent = data.category_spent;
+          }
+
+          // Show Receipt Modal
+          document.getElementById('successReceiptModal').classList.remove('hidden');
+
+        } else {
+          alert("Payment Error: " + (data.error || "Failed to authorize payment"));
+        }
+      }, 1000);
+
+    } catch (err) {
+      processingModal.classList.add('hidden');
+      alert("Network Error: Could not connect to payment server.");
+    }
+  }
+
+  function closeSuccessModal(resetForm = false) {
+    document.getElementById('successReceiptModal').classList.add('hidden');
+    if (resetForm) {
+      document.getElementById('amountInput').value = '';
+      document.getElementById('merchantInput').value = '';
+      onAmountOrCategoryChanged();
+    }
+  }
+
+  // Initial trigger
+  document.addEventListener('DOMContentLoaded', () => {
+    selectPreset('Campus Canteen Lunch', 120, 'Food');
+  });
+</script>
+
+{% endblock %}
